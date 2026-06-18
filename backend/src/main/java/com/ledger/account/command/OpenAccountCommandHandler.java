@@ -2,7 +2,6 @@ package com.ledger.account.command;
 
 import com.ledger.account.domain.AccountAggregate;
 import com.ledger.shared.concurrency.RetryingTransactionExecutor;
-import com.ledger.shared.eventstore.EventStore;
 import com.ledger.shared.outbox.OutboxRelay;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -10,15 +9,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class OpenAccountCommandHandler {
 
-    private static final String AGGREGATE_TYPE = "Account";
-
-    private final EventStore eventStore;
+    private final AccountRepository repository;
     private final RetryingTransactionExecutor executor;
     private final OutboxRelay relay;
 
     public OpenAccountCommandHandler(
-            EventStore eventStore, RetryingTransactionExecutor executor, OutboxRelay relay) {
-        this.eventStore = eventStore;
+            AccountRepository repository, RetryingTransactionExecutor executor, OutboxRelay relay) {
+        this.repository = repository;
         this.executor = executor;
         this.relay = relay;
     }
@@ -32,7 +29,7 @@ public class OpenAccountCommandHandler {
         executor.execute(() -> {
             AccountAggregate account = new AccountAggregate();
             account.open(accountId, command.owner(), command.type());
-            eventStore.append(accountId, AGGREGATE_TYPE, account.version(), account.uncommittedEvents());
+            repository.append(account);
             return null;
         });
 

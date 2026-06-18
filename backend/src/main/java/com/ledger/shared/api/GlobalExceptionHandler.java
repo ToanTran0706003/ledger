@@ -2,6 +2,7 @@ package com.ledger.shared.api;
 
 import com.ledger.account.domain.AccountNotFoundException;
 import com.ledger.account.domain.InsufficientFundsException;
+import com.ledger.account.domain.TransactionNotFoundException;
 import com.ledger.shared.eventstore.ConcurrencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyInProgressException;
@@ -24,6 +25,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountNotFoundException.class)
     public ProblemDetail handleAccountNotFound(AccountNotFoundException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(TransactionNotFoundException.class)
+    public ProblemDetail handleTransactionNotFound(TransactionNotFoundException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
 

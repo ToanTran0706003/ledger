@@ -24,6 +24,14 @@ public abstract class AbstractAggregate {
         }
     }
 
+    /**
+     * Đặt version khi khôi phục từ snapshot. Aggregate con tự khôi phục các field trạng
+     * thái rồi gọi hàm này; sau đó replay các event SAU version snapshot.
+     */
+    protected void restoreVersion(int version) {
+        this.version = version;
+    }
+
     /** Phát một event mới: áp ngay vào trạng thái và ghi nhận để persist sau. */
     protected void raise(DomainEvent event) {
         apply(event);

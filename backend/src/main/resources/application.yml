@@ -36,4 +36,7 @@ ledger:
     # Relay poll outbox định kỳ (lưới an toàn). Tắt trong test để tất định.
     scheduler-enabled: true
     poll-interval-ms: 1000
+  snapshot:
+    # Ghi snapshot mỗi N event trên một aggregate để load ≈ hằng số.
+    every-n-events: 50
 

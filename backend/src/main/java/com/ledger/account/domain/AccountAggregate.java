@@ -8,7 +8,8 @@ import java.time.Instant;
 /**
  * Vòng đời và số dư một tài khoản. Số dư được suy ra từ chuỗi posting (MoneyPosted),
  * không lưu trực tiếp. Aggregate là consistency boundary: invariant "không âm" được
- * kiểm tra tại đây trước khi phát event (ADR-0005).
+ * kiểm tra tại đây trước khi phát event (ADR-0005). Có thể khôi phục từ snapshot rồi
+ * replay phần event sau đó (ADR-0008).
  */
 public class AccountAggregate extends AbstractAggregate {
 
@@ -25,17 +26,39 @@ public class AccountAggregate extends AbstractAggregate {
 
     /** Ghi có (tăng số dư). Không có invariant chặn — tiền vào luôn hợp lệ. */
     public void credit(String txId, BigDecimal amount, MovementType movementType, String counterpartyAccountId) {
+        credit(txId, amount, movementType, counterpartyAccountId, null);
+    }
+
+    public void credit(
+            String txId,
+            BigDecimal amount,
+            MovementType movementType,
+            String counterpartyAccountId,
+            String reversalOfTxId) {
         requirePositive(amount);
-        raise(new MoneyPosted(accountId, txId, Direction.CREDIT, amount, movementType, counterpartyAccountId, Instant.now()));
+        raise(new MoneyPosted(
+                accountId, txId, Direction.CREDIT, amount, movementType, counterpartyAccountId, Instant.now(),
+                reversalOfTxId));
     }
 
     /** Ghi nợ (giảm số dư). Tài khoản không phải vault không được âm. */
     public void debit(String txId, BigDecimal amount, MovementType movementType, String counterpartyAccountId) {
+        debit(txId, amount, movementType, counterpartyAccountId, null);
+    }
+
+    public void debit(
+            String txId,
+            BigDecimal amount,
+            MovementType movementType,
+            String counterpartyAccountId,
+            String reversalOfTxId) {
         requirePositive(amount);
         if (type != AccountType.SYSTEM_VAULT && balance.subtract(amount).signum() < 0) {
             throw new InsufficientFundsException(accountId, balance, amount);
         }
-        raise(new MoneyPosted(accountId, txId, Direction.DEBIT, amount, movementType, counterpartyAccountId, Instant.now()));
+        raise(new MoneyPosted(
+                accountId, txId, Direction.DEBIT, amount, movementType, counterpartyAccountId, Instant.now(),
+                reversalOfTxId));
     }
 
     @Override
@@ -54,6 +77,21 @@ public class AccountAggregate extends AbstractAggregate {
             default -> throw new IllegalStateException(
                     "AccountAggregate không xử lý được event: " + event.eventType());
         }
+    }
+
+    /** Ảnh chụp trạng thái hiện tại để lưu snapshot. */
+    public AccountSnapshot toSnapshot() {
+        return new AccountSnapshot(accountId, owner, type, status, balance);
+    }
+
+    /** Khôi phục trạng thái từ snapshot tại một version; sau đó replay event mới hơn. */
+    public void restoreFromSnapshot(AccountSnapshot snapshot, int version) {
+        this.accountId = snapshot.accountId();
+        this.owner = snapshot.owner();
+        this.type = snapshot.type();
+        this.status = snapshot.status();
+        this.balance = snapshot.balance();
+        restoreVersion(version);
     }
 
     private static void requirePositive(BigDecimal amount) {

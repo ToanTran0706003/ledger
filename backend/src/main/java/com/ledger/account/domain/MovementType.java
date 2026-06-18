@@ -8,5 +8,6 @@ public enum MovementType {
     DEPOSIT,
     WITHDRAWAL,
     TRANSFER,
-    GENESIS
+    GENESIS,
+    REVERSAL
 }

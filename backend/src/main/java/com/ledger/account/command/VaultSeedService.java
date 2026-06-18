@@ -6,7 +6,6 @@ import com.ledger.account.domain.MovementType;
 import com.ledger.account.domain.SystemAccounts;
 import com.ledger.shared.concurrency.RetryingTransactionExecutor;
 import com.ledger.shared.config.LedgerProperties;
-import com.ledger.shared.eventstore.EventStore;
 import com.ledger.shared.outbox.OutboxRelay;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -20,21 +19,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class VaultSeedService {
 
-    private static final String AGGREGATE_TYPE = "Account";
-
-    private final EventStore eventStore;
     private final AccountRepository repository;
     private final RetryingTransactionExecutor executor;
     private final OutboxRelay relay;
     private final LedgerProperties properties;
 
     public VaultSeedService(
-            EventStore eventStore,
             AccountRepository repository,
             RetryingTransactionExecutor executor,
             OutboxRelay relay,
             LedgerProperties properties) {
-        this.eventStore = eventStore;
         this.repository = repository;
         this.executor = executor;
         this.relay = relay;
@@ -49,7 +43,7 @@ public class VaultSeedService {
             AccountAggregate vault = new AccountAggregate();
             vault.open(SystemAccounts.VAULT_ID, "System Vault", AccountType.SYSTEM_VAULT);
             vault.credit(UUID.randomUUID().toString(), properties.vault().seedAmount(), MovementType.GENESIS, null);
-            eventStore.append(SystemAccounts.VAULT_ID, AGGREGATE_TYPE, vault.version(), vault.uncommittedEvents());
+            repository.append(vault);
             return true;
         });
 

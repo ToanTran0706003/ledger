@@ -5,7 +5,6 @@ import com.ledger.account.domain.AccountNotFoundException;
 import com.ledger.account.domain.MovementType;
 import com.ledger.account.domain.SystemAccounts;
 import com.ledger.shared.concurrency.RetryingTransactionExecutor;
-import com.ledger.shared.eventstore.EventStore;
 import com.ledger.shared.outbox.OutboxRelay;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -21,19 +20,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class MoneyMovementHandler {
 
-    private static final String AGGREGATE_TYPE = "Account";
-
-    private final EventStore eventStore;
     private final AccountRepository repository;
     private final RetryingTransactionExecutor executor;
     private final OutboxRelay relay;
 
     public MoneyMovementHandler(
-            EventStore eventStore,
-            AccountRepository repository,
-            RetryingTransactionExecutor executor,
-            OutboxRelay relay) {
-        this.eventStore = eventStore;
+            AccountRepository repository, RetryingTransactionExecutor executor, OutboxRelay relay) {
         this.repository = repository;
         this.executor = executor;
         this.relay = relay;
@@ -71,8 +63,8 @@ public class MoneyMovementHandler {
         from.debit(txId, amount, movementType, toId);
         to.credit(txId, amount, movementType, fromId);
 
-        eventStore.append(fromId, AGGREGATE_TYPE, from.version(), from.uncommittedEvents());
-        eventStore.append(toId, AGGREGATE_TYPE, to.version(), to.uncommittedEvents());
+        repository.append(from);
+        repository.append(to);
 
         return txId;
     }

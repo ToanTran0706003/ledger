@@ -8,7 +8,8 @@ import java.time.Instant;
  * Một bút toán (posting) lên một tài khoản — đơn vị cơ bản của ghi sổ kép.
  * Mỗi lần di chuyển tiền sinh hai MoneyPosted (một CREDIT, một DEBIT) cùng txId
  * trên hai tài khoản (ADR-0005). counterpartyAccountId là tài khoản đối ứng
- * (null với bút toán GENESIS).
+ * (null với bút toán GENESIS). reversalOfTxId trỏ tới txId gốc nếu đây là bút toán
+ * bù (REVERSAL), ngược lại null.
  */
 public record MoneyPosted(
         String accountId,
@@ -17,5 +18,6 @@ public record MoneyPosted(
         BigDecimal amount,
         MovementType movementType,
         String counterpartyAccountId,
-        Instant postedAt) implements DomainEvent {
+        Instant postedAt,
+        String reversalOfTxId) implements DomainEvent {
 }

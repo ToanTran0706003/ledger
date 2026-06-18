@@ -1,6 +1,9 @@
 package com.ledger.shared.eventstore;
 
 import com.ledger.shared.domain.DomainEvent;
+import com.ledger.shared.observability.CorrelationContext;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.dao.DuplicateKeyException;
@@ -17,15 +20,18 @@ public class JdbcEventStore implements EventStore {
 
     private final JdbcTemplate jdbc;
     private final EventSerde serde;
+    private final CorrelationContext correlationContext;
 
-    public JdbcEventStore(JdbcTemplate jdbc, EventSerde serde) {
+    public JdbcEventStore(JdbcTemplate jdbc, EventSerde serde, CorrelationContext correlationContext) {
         this.jdbc = jdbc;
         this.serde = serde;
+        this.correlationContext = correlationContext;
     }
 
     @Override
     public void append(String aggregateId, String aggregateType, int expectedVersion, List<DomainEvent> events) {
         int version = expectedVersion;
+        String metadata = correlationContext.currentMetadataJson(); // null nếu không có request context
         try {
             for (DomainEvent event : events) {
                 version++;
@@ -34,10 +40,10 @@ public class JdbcEventStore implements EventStore {
 
                 jdbc.update(
                         """
-                        INSERT INTO events (event_id, aggregate_id, aggregate_type, aggregate_version, event_type, payload)
-                        VALUES (?, ?, ?, ?, ?, ?::jsonb)
+                        INSERT INTO events (event_id, aggregate_id, aggregate_type, aggregate_version, event_type, payload, metadata)
+                        VALUES (?, ?, ?, ?, ?, ?::jsonb, ?::jsonb)
                         """,
-                        eventId, aggregateId, aggregateType, version, event.eventType(), payload);
+                        eventId, aggregateId, aggregateType, version, event.eventType(), payload, metadata);
 
                 jdbc.update(
                         "INSERT INTO outbox (event_id, event_type, payload) VALUES (?, ?, ?::jsonb)",
@@ -55,6 +61,30 @@ public class JdbcEventStore implements EventStore {
                 "SELECT event_type, payload FROM events WHERE aggregate_id = ? ORDER BY aggregate_version",
                 (rs, n) -> serde.deserialize(rs.getString("event_type"), rs.getString("payload")),
                 aggregateId);
+    }
+
+    @Override
+    public List<DomainEvent> loadStreamAfter(String aggregateId, int afterVersion) {
+        return jdbc.query(
+                """
+                SELECT event_type, payload FROM events
+                WHERE aggregate_id = ? AND aggregate_version > ?
+                ORDER BY aggregate_version
+                """,
+                (rs, n) -> serde.deserialize(rs.getString("event_type"), rs.getString("payload")),
+                aggregateId, afterVersion);
+    }
+
+    @Override
+    public List<DomainEvent> loadStreamUntil(String aggregateId, Instant asOf) {
+        return jdbc.query(
+                """
+                SELECT event_type, payload FROM events
+                WHERE aggregate_id = ? AND occurred_at <= ?
+                ORDER BY aggregate_version
+                """,
+                (rs, n) -> serde.deserialize(rs.getString("event_type"), rs.getString("payload")),
+                aggregateId, Timestamp.from(asOf));
     }
 
     @Override

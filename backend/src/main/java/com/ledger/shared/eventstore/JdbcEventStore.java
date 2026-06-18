@@ -1,6 +1,5 @@
 package com.ledger.shared.eventstore;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ledger.shared.domain.DomainEvent;
 import java.util.List;
 import java.util.UUID;
@@ -9,20 +8,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Cài đặt event store trên PostgreSQL bằng JDBC thuần (ADR-0002).
- * Dùng JDBC thay JPA để kiểm soát chặt việc append-only — không có path UPDATE/DELETE.
+ * Cài đặt event store trên PostgreSQL bằng JDBC thuần (ADR-0002). Mỗi lần append,
+ * ghi event vào bảng events VÀ một bản vào outbox trong cùng transaction
+ * (transactional outbox, ADR-0006) — đảm bảo không mất event cho projection.
  */
 @Repository
 public class JdbcEventStore implements EventStore {
 
     private final JdbcTemplate jdbc;
-    private final ObjectMapper mapper;
-    private final EventTypeRegistry registry;
+    private final EventSerde serde;
 
-    public JdbcEventStore(JdbcTemplate jdbc, ObjectMapper mapper, EventTypeRegistry registry) {
+    public JdbcEventStore(JdbcTemplate jdbc, EventSerde serde) {
         this.jdbc = jdbc;
-        this.mapper = mapper;
-        this.registry = registry;
+        this.serde = serde;
     }
 
     @Override
@@ -31,12 +29,19 @@ public class JdbcEventStore implements EventStore {
         try {
             for (DomainEvent event : events) {
                 version++;
+                UUID eventId = UUID.randomUUID();
+                String payload = serde.serialize(event);
+
                 jdbc.update(
                         """
                         INSERT INTO events (event_id, aggregate_id, aggregate_type, aggregate_version, event_type, payload)
                         VALUES (?, ?, ?, ?, ?, ?::jsonb)
                         """,
-                        UUID.randomUUID(), aggregateId, aggregateType, version, event.eventType(), serialize(event));
+                        eventId, aggregateId, aggregateType, version, event.eventType(), payload);
+
+                jdbc.update(
+                        "INSERT INTO outbox (event_id, event_type, payload) VALUES (?, ?, ?::jsonb)",
+                        eventId, event.eventType(), payload);
             }
         } catch (DuplicateKeyException e) {
             // Vi phạm uq_aggregate_version: một request khác đã ghi version này trước.
@@ -48,7 +53,7 @@ public class JdbcEventStore implements EventStore {
     public List<DomainEvent> loadStream(String aggregateId) {
         return jdbc.query(
                 "SELECT event_type, payload FROM events WHERE aggregate_id = ? ORDER BY aggregate_version",
-                (rs, n) -> deserialize(rs.getString("event_type"), rs.getString("payload")),
+                (rs, n) -> serde.deserialize(rs.getString("event_type"), rs.getString("payload")),
                 aggregateId);
     }
 
@@ -56,22 +61,6 @@ public class JdbcEventStore implements EventStore {
     public List<DomainEvent> loadAll() {
         return jdbc.query(
                 "SELECT event_type, payload FROM events ORDER BY global_seq",
-                (rs, n) -> deserialize(rs.getString("event_type"), rs.getString("payload")));
-    }
-
-    private String serialize(DomainEvent event) {
-        try {
-            return mapper.writeValueAsString(event);
-        } catch (Exception e) {
-            throw new IllegalStateException("Không serialize được event " + event.eventType(), e);
-        }
-    }
-
-    private DomainEvent deserialize(String eventType, String payload) {
-        try {
-            return mapper.readValue(payload, registry.resolve(eventType));
-        } catch (Exception e) {
-            throw new IllegalStateException("Không deserialize được event " + eventType, e);
-        }
+                (rs, n) -> serde.deserialize(rs.getString("event_type"), rs.getString("payload")));
     }
 }

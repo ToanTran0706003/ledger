@@ -34,5 +34,9 @@ public class ReadModelRebuildService {
         for (DomainEvent event : allEvents) {
             dispatcher.dispatch(event);
         }
+
+        // Read model vừa dựng lại đầy đủ từ event store (nguồn sự thật) -> vô hiệu hóa
+        // các dòng outbox còn PENDING để relay không project lại gây đếm trùng.
+        jdbc.update("UPDATE outbox SET status = 'SENT', sent_at = now() WHERE status = 'PENDING'");
     }
 }

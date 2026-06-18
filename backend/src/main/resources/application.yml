@@ -32,4 +32,8 @@ ledger:
   vault:
     # Lượng tiền "khai sinh" nạp vào SYSTEM_VAULT; cũng là hằng số integrity check đối chiếu.
     seed-amount: 1000000000000.00
+  outbox:
+    # Relay poll outbox định kỳ (lưới an toàn). Tắt trong test để tất định.
+    scheduler-enabled: true
+    poll-interval-ms: 1000
 

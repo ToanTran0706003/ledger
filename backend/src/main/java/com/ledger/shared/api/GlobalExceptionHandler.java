@@ -3,6 +3,8 @@ package com.ledger.shared.api;
 import com.ledger.account.domain.AccountNotFoundException;
 import com.ledger.account.domain.InsufficientFundsException;
 import com.ledger.shared.eventstore.ConcurrencyConflictException;
+import com.ledger.shared.idempotency.IdempotencyConflictException;
+import com.ledger.shared.idempotency.IdempotencyInProgressException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,5 +35,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleBadRequest(IllegalArgumentException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ProblemDetail handleIdempotencyConflict(IdempotencyConflictException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+    }
+
+    @ExceptionHandler(IdempotencyInProgressException.class)
+    public ProblemDetail handleIdempotencyInProgress(IdempotencyInProgressException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
     }
 }

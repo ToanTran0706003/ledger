@@ -4,18 +4,18 @@ import com.ledger.account.domain.AccountAggregate;
 import com.ledger.account.domain.AccountType;
 import com.ledger.account.domain.MovementType;
 import com.ledger.account.domain.SystemAccounts;
+import com.ledger.shared.concurrency.RetryingTransactionExecutor;
 import com.ledger.shared.config.LedgerProperties;
-import com.ledger.shared.domain.DomainEvent;
 import com.ledger.shared.eventstore.EventStore;
-import com.ledger.shared.projection.ProjectionDispatcher;
+import com.ledger.shared.outbox.OutboxRelay;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Khai sinh SYSTEM_VAULT với số dư khởi tạo (bút toán GENESIS). Đây là vế tiền
  * "được phát hành" duy nhất không có đối ứng; tổng tiền toàn hệ thống sau đó luôn
- * bằng seedAmount (cơ sở cho integrity check).
+ * bằng seedAmount (cơ sở cho integrity check). Idempotent kể cả khi chạy đồng thời:
+ * nếu hai tiến trình cùng seed, một bên dính ConcurrencyConflict rồi thấy vault đã có.
  */
 @Service
 public class VaultSeedService {
@@ -24,34 +24,37 @@ public class VaultSeedService {
 
     private final EventStore eventStore;
     private final AccountRepository repository;
-    private final ProjectionDispatcher dispatcher;
+    private final RetryingTransactionExecutor executor;
+    private final OutboxRelay relay;
     private final LedgerProperties properties;
 
     public VaultSeedService(
             EventStore eventStore,
             AccountRepository repository,
-            ProjectionDispatcher dispatcher,
+            RetryingTransactionExecutor executor,
+            OutboxRelay relay,
             LedgerProperties properties) {
         this.eventStore = eventStore;
         this.repository = repository;
-        this.dispatcher = dispatcher;
+        this.executor = executor;
+        this.relay = relay;
         this.properties = properties;
     }
 
-    @Transactional
     public void seedIfAbsent() {
-        if (repository.load(SystemAccounts.VAULT_ID).isPresent()) {
-            return;
-        }
+        boolean seeded = executor.execute(() -> {
+            if (repository.load(SystemAccounts.VAULT_ID).isPresent()) {
+                return false;
+            }
+            AccountAggregate vault = new AccountAggregate();
+            vault.open(SystemAccounts.VAULT_ID, "System Vault", AccountType.SYSTEM_VAULT);
+            vault.credit(UUID.randomUUID().toString(), properties.vault().seedAmount(), MovementType.GENESIS, null);
+            eventStore.append(SystemAccounts.VAULT_ID, AGGREGATE_TYPE, vault.version(), vault.uncommittedEvents());
+            return true;
+        });
 
-        AccountAggregate vault = new AccountAggregate();
-        vault.open(SystemAccounts.VAULT_ID, "System Vault", AccountType.SYSTEM_VAULT);
-        vault.credit(UUID.randomUUID().toString(), properties.vault().seedAmount(), MovementType.GENESIS, null);
-
-        eventStore.append(SystemAccounts.VAULT_ID, AGGREGATE_TYPE, vault.version(), vault.uncommittedEvents());
-        for (DomainEvent event : vault.uncommittedEvents()) {
-            dispatcher.dispatch(event);
+        if (seeded) {
+            relay.drainQuietly();
         }
-        vault.markEventsCommitted();
     }
 }

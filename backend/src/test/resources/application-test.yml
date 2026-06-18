@@ -1,0 +1,7 @@
+# Profile test: dùng database ledger_test riêng (cách ly khỏi dữ liệu dev).
+# Tạm thời trỏ vào PostgreSQL local; khi sửa được Docker sẽ chuyển sang Testcontainers.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ledger_test
+    username: ledger
+    password: ledger

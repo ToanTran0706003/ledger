@@ -21,6 +21,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 2 | **PostgreSQL** làm event store (bảng append-only), không EventStoreDB | `docs/adr/0002-postgres-event-store.md` |
 | 3 | **Transactional Outbox** thay vì message broker ở giai đoạn đầu | `docs/adr/0003-transactional-outbox.md` |
 | 4 | **Double-entry** với tài khoản **SYSTEM_VAULT** để giải "tiền từ đâu ra" | `docs/adr/0004-double-entry-system-vault.md` |
+| 5 | **Account-centric postings** (`MoneyPosted`) cho double-entry | `docs/adr/0005-account-centric-postings.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -49,20 +50,23 @@ P8 Advanced Business → P9 Distributed → P10 Polish.
 Điểm dừng an toàn: sau **P4** đã đủ ấn tượng cho phỏng vấn.
 
 ## Trạng thái hiện tại
-**Phase 0 ✅ + Phase 1 ✅ (đã verify end-to-end).**
-- Phase 0: repo Git, `.gitignore`, `LICENSE`, README, 4 ADR, skeleton Spring Boot 3.5.15/Java 21,
-  `application.yml`, `ops/docker-compose.yml`, `/actuator/health` = UP.
-- Phase 1 (Walking Skeleton): event store JDBC trên Postgres, `AccountAggregate`+`AccountOpened`,
-  command handler, projector → `rm_account_balance`, REST (`POST /accounts`, `GET /accounts/{id}/balance`),
-  rebuild read model (`POST /admin/read-model/rebuild`). Test: 4 unit + 3 integration + context, tất cả pass.
+**Phase 0 ✅ + Phase 1 ✅ + Phase 2 ✅ (đã verify end-to-end).** Repo public:
+https://github.com/ToanTran0706003/ledger
+- Phase 0: repo Git, skeleton Spring Boot 3.5.15/Java 21, `/actuator/health` = UP.
+- Phase 1 (Walking Skeleton): event store JDBC, `AccountAggregate`+`AccountOpened`, projector
+  → `rm_account_balance`, REST mở/xem số dư, rebuild read model.
+- Phase 2 (Core Ledger): double-entry account-centric (`MoneyPosted`, ADR-0005), SYSTEM_VAULT
+  seed GENESIS, deposit/withdraw/transfer (`POST /accounts/{id}/deposit|withdraw`, `POST /transfers`),
+  invariant không-âm, `rm_transaction_history` + `GET /accounts/{id}/history`, integrity check
+  (`GET /audit/integrity`), ProblemDetail cho lỗi, CI GitHub Actions (build+test với Postgres service).
+- Test: ~12 unit + 11 integration, tất cả pass.
 
-**Lưu ý môi trường (xem chi tiết trong code/ADR sau):** máy có sẵn PostgreSQL 18 ở `localhost:5432`
-(dùng trực tiếp); Docker Desktop hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được —
-integration test đang chạy trên DB `ledger_test` của Postgres local. Cần JDK 21 (không phải JDK 26)
-để chạy Gradle.
+**Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
+hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy
+trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (không phải JDK 26) chạy Gradle.
 
-**Tiếp theo:** Phase 2 — Core Ledger + Double-Entry (SYSTEM_VAULT, deposit/withdraw/transfer,
-integrity check, CI). Xem checklist ở `docs/08-todo-backlog.md`.
+**Tiếp theo:** Phase 3 — Correctness under Pressure (optimistic concurrency + retry, idempotency key,
+transactional outbox, property-based & concurrency test). Xem `docs/08-todo-backlog.md`.
 
 ## Tài liệu nền
 `docs/`: 00 vision · 01 architecture · 02 domain · 03 data/eventstore · 04 security ·

@@ -31,16 +31,16 @@
 - [x] 🟡 Endpoint rebuild read model (admin) + test rebuild ra kết quả y hệt
 
 ## Phase 2 — Core Ledger + Double-Entry
-- [ ] 🔴 Khái niệm Posting/Transaction cân vế
-- [ ] 🔴 Seed `SYSTEM_VAULT` số dư khởi tạo
-- [ ] 🔴 Command + event: Deposit, Withdraw, Transfer
-- [ ] 🔴 Invariant số dư CUSTOMER ≥ 0 (vault được âm)
-- [ ] 🔴 Read model `rm_transaction_history`
-- [ ] 🔴 REST cho deposit/withdraw/transfer + xem lịch sử
-- [ ] 🔴 `GET /audit/integrity` (tổng số dư == hằng số)
-- [ ] 🔴 Test: chuyển tiền cân vế, không âm, integrity pass
-- [ ] 🔴 GitHub Actions: build + test
-- [ ] 🟡 Validation đầu vào (Bean Validation) + lỗi rõ ràng
+- [x] 🔴 Khái niệm Posting/Transaction cân vế (MoneyPosted, ADR-0005)
+- [x] 🔴 Seed `SYSTEM_VAULT` số dư khởi tạo (posting GENESIS lúc khởi động)
+- [x] 🔴 Command + event: Deposit, Withdraw, Transfer
+- [x] 🔴 Invariant số dư CUSTOMER ≥ 0 (vault được âm)
+- [x] 🔴 Read model `rm_transaction_history`
+- [x] 🔴 REST cho deposit/withdraw/transfer + xem lịch sử
+- [x] 🔴 `GET /audit/integrity` (tổng số dư == hằng số)
+- [x] 🔴 Test: chuyển tiền cân vế, không âm, integrity pass
+- [x] 🔴 GitHub Actions: build + test
+- [x] 🟡 Validation đầu vào (Bean Validation) + lỗi rõ ràng (ProblemDetail)
 
 ## Phase 3 — Correctness under Pressure
 - [ ] 🔴 UNIQUE(aggregate_id, aggregate_version) + map lỗi → `ConcurrencyConflict`

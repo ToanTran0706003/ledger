@@ -62,6 +62,8 @@ Một endpoint `/audit/integrity` chạy: `SUM(tất cả số dư) == tổng kh
 
 > **Quy ước:** Event đặt tên ở **thì quá khứ** (đã xảy ra). Command ở **thể mệnh lệnh** (yêu cầu). Một command có thể bị từ chối; một event thì không thể "rút lại", chỉ có thể bù bằng event khác.
 
+> **Cập nhật (ADR-0005):** Từ Phase 2, đơn vị event của việc di chuyển tiền là **`MoneyPosted`** (một posting account-centric có `direction` CREDIT/DEBIT + `movementType` DEPOSIT/WITHDRAWAL/TRANSFER/GENESIS), thay cho các event riêng `MoneyDeposited/Withdrawn/Transferred` trong bảng trên. Mỗi giao dịch sinh hai `MoneyPosted` cùng `txId`. Lý do: cần consistency boundary + optimistic concurrency theo từng tài khoản. Xem `adr/0005-account-centric-postings.md`.
+
 ## 5. Business Rules (quy tắc nghiệp vụ)
 
 1. **Không âm:** tài khoản CUSTOMER không được rút/chuyển quá số dư khả dụng.

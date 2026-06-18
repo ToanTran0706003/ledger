@@ -135,5 +135,12 @@ Chi tiết cách dùng ở `04-security-and-anti-cheat.md` mục Idempotency.
 - Read model + snapshot đảm bảo vận hành hằng ngày không cần đụng event lạnh.
 - Với banking: **giữ toàn bộ lịch sử** (yêu cầu audit/pháp lý) — archiving là để *rẻ hóa* lưu trữ, không phải để xóa.
 
-## 9. Bước kế tiếp
+## 9. Ghi chú triển khai (ADR-0005)
+Việc di chuyển tiền được lưu dưới dạng **posting account-centric**: event `MoneyPosted`
+thuộc về *một* stream tài khoản (không phải một event chung hai tài khoản). Mỗi nạp/rút/
+chuyển sinh hai `MoneyPosted` cùng `txId` (một DEBIT, một CREDIT), ghi atomic trong cùng
+một transaction. Đây là điều kiện để optimistic concurrency theo từng `aggregate_id`
+(mục 2) bảo vệ được invariant không-âm. Chi tiết: `adr/0005-account-centric-postings.md`.
+
+## 10. Bước kế tiếp
 Đọc `04-security-and-anti-cheat.md` — phần tập trung giá trị kỹ thuật nhất của dự án.

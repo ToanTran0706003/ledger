@@ -36,9 +36,9 @@
 
 > Cập nhật mục này khi tiến độ thay đổi.
 
-- **Phase hiện tại:** Phase 1 ✅ xong → chuẩn bị Phase 2 (Core Ledger + Double-Entry)
-- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0004 đã có
-- **Code:** backend/ chạy được end-to-end (mở tài khoản → xem số dư), event store + read model + rebuild; test pass. Xem [README gốc](../README.md) để chạy.
+- **Phase hiện tại:** Phase 2 ✅ xong → chuẩn bị Phase 3 (Correctness under Pressure)
+- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0005 đã có
+- **Code:** backend/ chạy double-entry end-to-end (nạp/rút/chuyển, sổ kép cân, integrity check, sao kê), CI xanh. Xem [README gốc](../README.md) để chạy.
 - **Demo concept:** Đã có bản preview HTML/JS (UI/UX prototype)
 
 ## Quy ước tài liệu

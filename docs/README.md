@@ -36,9 +36,9 @@
 
 > Cập nhật mục này khi tiến độ thay đổi.
 
-- **Phase hiện tại:** Phase 5 ✅ xong → tùy chọn Phase 6 (Observability/Perf) hoặc Phase 7 (Frontend)
-- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0009 đã có
-- **Code:** backend/ đầy đủ ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal + bảo mật JWT/ownership/vai trò; 35 test, CI xanh. Xem [README gốc](../README.md) để chạy.
+- **Phase hiện tại:** Phase 6 ✅ xong → tùy chọn Phase 7 (Frontend) / 8 (Advanced) / 10 (Polish)
+- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0010 + `benchmarks/` đã có
+- **Code:** backend/ đầy đủ ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal + bảo mật JWT/ownership/vai trò + observability (Prometheus, benchmark); 36 test, CI xanh. Xem [README gốc](../README.md) để chạy.
 - **Demo concept:** Đã có bản preview HTML/JS (UI/UX prototype)
 
 ## Quy ước tài liệu

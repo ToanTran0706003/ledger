@@ -72,12 +72,12 @@
 - [ ] 🟢 2FA/TOTP cho thao tác nhạy cảm
 
 ## Phase 6 — Observability & Performance
-- [ ] 🔴 Micrometer + endpoint Prometheus
-- [ ] 🔴 Structured logging (JSON) + correlationId
-- [ ] 🟡 Tracing OpenTelemetry
-- [ ] 🟡 Dashboard Grafana (latency, throughput, conflict rate, projection lag)
-- [ ] 🔴 Load test k6/Gatling + ghi biểu đồ p99 vào `docs/benchmarks/`
-- [ ] 🟡 Tối ưu index/snapshot N theo kết quả; thêm cache nếu đo thấy nghẽn
+- [x] 🔴 Micrometer + endpoint Prometheus (`/actuator/prometheus`)
+- [x] 🔴 Structured logging (JSON ECS, profile prod) + correlationId/userId qua MDC
+- [ ] 🟡 Tracing OpenTelemetry (chưa làm — để sau)
+- [ ] 🟡 Dashboard Grafana (chưa làm — Docker hỏng; metric đã sẵn để scrape)
+- [x] 🔴 Load test (k6 script + baseline đo thật) → `docs/benchmarks/`
+- [x] 🟡 Tối ưu index (idx_events_txid cho reversal); snapshot N cấu hình được (ADR-0010)
 
 ## Phase 7 — Frontend (anti-slop)
 - [ ] 🔴 Khởi tạo frontend (React/Next hoặc tương đương)

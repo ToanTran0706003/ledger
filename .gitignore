@@ -3,6 +3,13 @@ build/
 out/
 bin/
 target/
+dist/
+
+# Node (frontend)
+node_modules/
+
+# Preview tooling (machine-specific launch config)
+.claude/
 
 # Gradle
 .gradle/

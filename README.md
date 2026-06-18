@@ -29,33 +29,38 @@ Java 21 (LTS) · Spring Boot 3.5 · Gradle (Kotlin DSL) · PostgreSQL 16 · Flyw
 ```
 Ledger/
 ├── PROJECT_BRIEF.md     # bối cảnh dự án (đọc trước)
-├── docs/                # tài liệu nền tảng + ADR
-├── backend/             # ứng dụng Spring Boot
-└── ops/                 # docker-compose (PostgreSQL), hạ tầng local
+├── docs/                # tài liệu nền tảng + ADR + benchmarks
+├── backend/             # ứng dụng Spring Boot (API)
+├── frontend/            # giao diện React + TypeScript (Vite)
+└── ops/                 # docker-compose (PostgreSQL), k6 load test
 ```
 
 ## Chạy local
 
-**Yêu cầu:** JDK 21, Docker Desktop. (Gradle không cần cài — dùng wrapper `gradlew` kèm sẵn.)
+**Yêu cầu:** JDK 21, Node 20+, PostgreSQL (Docker hoặc cài sẵn). Gradle không cần cài (dùng `gradlew`).
 
 ```bash
-# 1. Khởi động PostgreSQL
+# 1. PostgreSQL (Docker) — hoặc dùng Postgres cài sẵn với DB/role "ledger"
 docker compose -f ops/docker-compose.yml up -d
 
-# 2. Chạy ứng dụng (từ thư mục backend/)
+# 2. Backend API (cửa sổ 1)
 cd backend
-./gradlew bootRun          # Windows: .\gradlew.bat bootRun
+./gradlew bootRun          # Windows: .\gradlew.bat bootRun ; cần JAVA_HOME -> JDK 21
+# health: curl http://localhost:8080/actuator/health  ->  {"status":"UP"}
 
-# 3. Kiểm tra health
-curl http://localhost:8080/actuator/health
-# -> {"status":"UP", ...}
+# 3. Frontend (cửa sổ 2)
+cd frontend
+npm install
+npm run dev                # mở http://localhost:5173
 ```
 
-> Trên Windows, nếu có nhiều JDK, đảm bảo `JAVA_HOME` trỏ về JDK 21 trước khi chạy `gradlew`.
+Đăng ký một tài khoản trong UI, mở account, rồi nạp/rút/chuyển tiền và xem
+**replay dựng số dư** + sao kê. Metrics: `http://localhost:8080/actuator/prometheus`.
 
 ## Trạng thái hiện tại
 
-**Phase 0 — Foundation.** Skeleton chạy được, health check UP. Tiếp theo: Phase 1 — Walking Skeleton (Event Sourcing tối thiểu). Xem lộ trình ở [docs/07-roadmap-and-phases.md](./docs/07-roadmap-and-phases.md).
+**Phase 0 → 7 đã xong** (backend ES/CQRS đầy đủ + frontend). Xem chi tiết ở
+[PROJECT_BRIEF.md](./PROJECT_BRIEF.md) và lộ trình ở [docs/07-roadmap-and-phases.md](./docs/07-roadmap-and-phases.md).
 
 ## License
 

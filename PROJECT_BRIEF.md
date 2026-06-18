@@ -27,6 +27,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 8 | **Snapshot + time-travel + reversal** (audit metadata correlationId) | `docs/adr/0008-snapshots-time-travel-reversal.md` |
 | 9 | **Security**: JWT (HS256) + ownership check + vai trò, IAM dùng JPA | `docs/adr/0009-security-and-identity.md` |
 | 10 | **Observability & Perf**: Prometheus metrics, structured logs, benchmark | `docs/adr/0010-observability-and-performance.md` |
+| 11 | **Frontend** React+TS+Vite, design tokens anti-slop (taste-skill) | `docs/adr/0011-frontend-and-design-system.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -55,7 +56,7 @@ P8 Advanced Business → P9 Distributed → P10 Polish.
 Điểm dừng an toàn: sau **P4** đã đủ ấn tượng cho phỏng vấn.
 
 ## Trạng thái hiện tại
-**Phase 0 → 6 đều ✅ (đã verify end-to-end, CI xanh).** Repo public:
+**Phase 0 → 7 đều ✅ (đã verify end-to-end, CI xanh).** Repo public:
 https://github.com/ToanTran0706003/ledger
 - Phase 0: skeleton Spring Boot 3.5.15/Java 21, `/actuator/health` = UP.
 - Phase 1: event store JDBC, AccountAggregate+AccountOpened, projector → rm_account_balance, rebuild.
@@ -72,14 +73,18 @@ https://github.com/ToanTran0706003/ledger
 - Phase 6 (Observability & Perf): Prometheus `/actuator/prometheus` (metrics: command latency,
   throughput, conflict rate, projection lag), structured JSON log (profile prod), index reversal,
   k6 load script + benchmark thật (ghi p99 ≈ 14.6ms, đọc p99 ≈ 4.3ms — vượt mục tiêu) (ADR-0010).
-- Test tổng: **36 test, 0 fail** (gồm property-based jqwik, concurrency, security MockMvc, metrics).
+- Phase 7 (Frontend): React + TypeScript + Vite (`frontend/`), design tokens tự dựng (anti-slop,
+  áp dụng skill taste-skill): đăng nhập/đăng ký, dashboard, nạp/rút/chuyển, sao kê dạng sổ cái,
+  time-travel viewer, **signature "replay dựng số dư từ chuỗi sự kiện"**, accessibility AA,
+  reduced-motion (ADR-0011). Backend thêm `GET /accounts` (tài khoản của tôi). CI build cả frontend.
+- Backend test: **36 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy
 trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (không phải JDK 26) chạy Gradle.
 
-**Tiếp theo (tùy chọn):** Phase 7 — Frontend (React/Next), Phase 8 — Advanced Business
-(tiết kiệm/lãi, standing order, hold, fraud), hoặc Phase 10 — Polish & README. Xem `docs/08-todo-backlog.md`.
+**Tiếp theo (tùy chọn):** Phase 8 — Advanced Business (tiết kiệm/lãi qua replay, standing order,
+hold, fraud), Phase 9 — Distributed, hoặc Phase 10 — Polish & README. Xem `docs/08-todo-backlog.md`.
 
 ## Tài liệu nền
 `docs/`: 00 vision · 01 architecture · 02 domain · 03 data/eventstore · 04 security ·

@@ -36,9 +36,9 @@
 
 > Cập nhật mục này khi tiến độ thay đổi.
 
-- **Phase hiện tại:** Phase 6 ✅ xong → tùy chọn Phase 7 (Frontend) / 8 (Advanced) / 10 (Polish)
-- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0010 + `benchmarks/` đã có
-- **Code:** backend/ đầy đủ ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal + bảo mật JWT/ownership/vai trò + observability (Prometheus, benchmark); 36 test, CI xanh. Xem [README gốc](../README.md) để chạy.
+- **Phase hiện tại:** Phase 7 ✅ xong → tùy chọn Phase 8 (Advanced) / 9 (Distributed) / 10 (Polish)
+- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0011 + `benchmarks/` đã có
+- **Code:** backend/ (ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal + JWT/ownership/vai trò + observability) **và** frontend/ (React+TS, design anti-slop, signature replay); 36 backend test, CI build cả hai. Xem [README gốc](../README.md) để chạy.
 - **Demo concept:** Đã có bản preview HTML/JS (UI/UX prototype)
 
 ## Quy ước tài liệu

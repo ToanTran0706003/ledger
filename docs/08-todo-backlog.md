@@ -80,13 +80,13 @@
 - [x] 🟡 Tối ưu index (idx_events_txid cho reversal); snapshot N cấu hình được (ADR-0010)
 
 ## Phase 7 — Frontend (anti-slop)
-- [ ] 🔴 Khởi tạo frontend (React/Next hoặc tương đương)
-- [ ] 🔴 Design tokens + design notes (giải thích lựa chọn, tự phản biện slop)
-- [ ] 🔴 Đăng nhập, dashboard số dư, chuyển tiền, sao kê
-- [ ] 🔴 Time-travel viewer + animation replay dựng số dư (signature)
-- [ ] 🔴 Accessibility AA, responsive, reduced-motion
-- [ ] 🟡 Empty states & error states hướng dẫn được
-- [ ] 🟡 Loại bỏ copy sáo rỗng, dùng ngôn ngữ người dùng
+- [x] 🔴 Khởi tạo frontend (React + TypeScript + Vite) (ADR-0011)
+- [x] 🔴 Design tokens (CSS variables) + áp dụng taste-skill chống slop
+- [x] 🔴 Đăng nhập/đăng ký, dashboard số dư, nạp/rút/chuyển tiền, sao kê dạng sổ cái
+- [x] 🔴 Time-travel viewer + animation replay dựng số dư (signature)
+- [x] 🔴 Accessibility AA (tương phản, focus, ARIA), responsive, reduced-motion
+- [x] 🟡 Empty states & error states (toast surface message backend)
+- [x] 🟡 Copy theo ngôn ngữ người dùng, không sáo rỗng, không em-dash
 
 ## Phase 8 — Advanced Business
 - [ ] 🟡 Tài khoản tiết kiệm + tính lãi qua replay (InterestAccrued)

@@ -53,13 +53,13 @@
 - [x] 🟡 Test outbox: event đã commit nhưng chưa drain vẫn được relay project
 
 ## Phase 4 — Time & Audit
-- [ ] 🔴 Bảng `snapshots` + ghi snapshot mỗi N event
-- [ ] 🔴 Load aggregate qua snapshot + replay phần sau
-- [ ] 🔴 Test: xóa snapshot vẫn ra kết quả y hệt
-- [ ] 🔴 Time-travel: `GET /accounts/{id}/balance?asOf=...`
-- [ ] 🔴 ReverseTransaction (event bù) + test giữ nguyên lịch sử
-- [ ] 🟡 Audit metadata (userId, ip, correlationId) trên mọi event
-- [ ] 🟢 Hash chain + endpoint verify chuỗi toàn vẹn
+- [x] 🔴 Bảng `snapshots` + ghi snapshot mỗi N event (ADR-0008)
+- [x] 🔴 Load aggregate qua snapshot + replay phần sau
+- [x] 🔴 Test: xóa snapshot vẫn ra kết quả y hệt
+- [x] 🔴 Time-travel: `GET /accounts/{id}/balance?asOf=...`
+- [x] 🔴 ReverseTransaction (bút toán bù) + test giữ nguyên lịch sử
+- [x] 🟡 Audit metadata (correlationId) trên mọi event — userId/ip để Phase 5 (auth)
+- [ ] 🟢 Hash chain + endpoint verify chuỗi toàn vẹn (chưa làm — tùy chọn nâng cao)
 
 ## Phase 5 — Security & Identity
 - [ ] 🔴 Module IAM: đăng ký/đăng nhập, mật khẩu Argon2/BCrypt

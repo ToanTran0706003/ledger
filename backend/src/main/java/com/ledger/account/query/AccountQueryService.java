@@ -15,6 +15,24 @@ public class AccountQueryService {
         this.jdbc = jdbc;
     }
 
+    public List<AccountBalanceView> findByOwner(String owner) {
+        return jdbc.query(
+                """
+                SELECT account_id, owner, currency, balance, available, status
+                FROM rm_account_balance
+                WHERE owner = ?
+                ORDER BY account_id
+                """,
+                (rs, n) -> new AccountBalanceView(
+                        rs.getString("account_id"),
+                        rs.getString("owner"),
+                        rs.getString("currency"),
+                        rs.getBigDecimal("balance"),
+                        rs.getBigDecimal("available"),
+                        rs.getString("status")),
+                owner);
+    }
+
     public List<TransactionHistoryView> findHistory(String accountId) {
         return jdbc.query(
                 """

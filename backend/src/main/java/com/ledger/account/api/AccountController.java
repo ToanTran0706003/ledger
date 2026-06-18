@@ -87,6 +87,12 @@ public class AccountController {
                 () -> new TransactionResponse(moneyMovement.withdraw(new WithdrawCommand(accountId, request.amount()))));
     }
 
+    /** Danh sách tài khoản của người dùng đang đăng nhập (cho dashboard). */
+    @GetMapping
+    public List<AccountBalanceView> myAccounts() {
+        return accountQuery.findByOwner(currentUser.requireUserId());
+    }
+
     @GetMapping("/{accountId}/balance")
     public AccountBalanceView balance(@PathVariable String accountId) {
         accessControl.requireAccountAccess(accountId);

@@ -3,6 +3,8 @@ package com.ledger.shared.api;
 import com.ledger.account.domain.AccountNotFoundException;
 import com.ledger.account.domain.InsufficientFundsException;
 import com.ledger.account.domain.TransactionNotFoundException;
+import com.ledger.iam.InvalidCredentialsException;
+import com.ledger.iam.UsernameTakenException;
 import com.ledger.shared.eventstore.ConcurrencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyInProgressException;
@@ -50,6 +52,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IdempotencyInProgressException.class)
     public ProblemDetail handleIdempotencyInProgress(IdempotencyInProgressException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+
+    @ExceptionHandler(UsernameTakenException.class)
+    public ProblemDetail handleUsernameTaken(UsernameTakenException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
     }
 }

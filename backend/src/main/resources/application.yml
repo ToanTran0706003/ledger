@@ -39,4 +39,10 @@ ledger:
   snapshot:
     # Ghi snapshot mỗi N event trên một aggregate để load ≈ hằng số.
     every-n-events: 50
+  security:
+    jwt:
+      # HS256: secret tối thiểu 32 byte. ĐỔI trong production (qua biến môi trường).
+      secret: "${LEDGER_JWT_SECRET:dev-only-secret-please-change-32bytes-minimum-0123456789}"
+      access-ttl-minutes: 15
+      refresh-ttl-days: 7
 

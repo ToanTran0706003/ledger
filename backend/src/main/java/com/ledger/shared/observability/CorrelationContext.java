@@ -3,6 +3,9 @@ package com.ledger.shared.observability;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,15 +35,24 @@ public class CorrelationContext {
         CORRELATION_ID.remove();
     }
 
-    /** Metadata JSON cho event hiện tại, hoặc null nếu không có request context. */
+    /** Metadata JSON cho event hiện tại (correlationId + userId), hoặc null nếu không có. */
     public String currentMetadataJson() {
+        Map<String, Object> metadata = new LinkedHashMap<>();
+
         String correlationId = CORRELATION_ID.get();
-        if (correlationId == null) {
+        if (correlationId != null) {
+            metadata.put("correlationId", correlationId);
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+            metadata.put("userId", auth.getName());
+        }
+
+        if (metadata.isEmpty()) {
             return null;
         }
         try {
-            Map<String, Object> metadata = new LinkedHashMap<>();
-            metadata.put("correlationId", correlationId);
             return mapper.writeValueAsString(metadata);
         } catch (Exception e) {
             return null; // metadata là phụ trợ — không để hỏng việc ghi event

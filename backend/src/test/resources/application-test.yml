@@ -5,3 +5,8 @@ spring:
     url: jdbc:postgresql://localhost:5432/ledger_test
     username: ledger
     password: ledger
+
+ledger:
+  outbox:
+    # Test tự gọi drain (qua handler) -> tắt scheduler để kết quả tất định, không flaky.
+    scheduler-enabled: false

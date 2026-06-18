@@ -41,6 +41,8 @@ class AccountFlowIntegrationTest {
     @BeforeEach
     void clean() {
         jdbc.update("TRUNCATE TABLE events RESTART IDENTITY");
+        jdbc.update("TRUNCATE TABLE outbox RESTART IDENTITY");
+        jdbc.update("TRUNCATE TABLE rm_transaction_history RESTART IDENTITY");
         jdbc.update("TRUNCATE TABLE rm_account_balance");
     }
 

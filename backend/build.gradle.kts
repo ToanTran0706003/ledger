@@ -26,6 +26,7 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("net.jqwik:jqwik:1.9.2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

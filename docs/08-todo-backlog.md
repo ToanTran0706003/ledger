@@ -62,12 +62,12 @@
 - [ ] 🟢 Hash chain + endpoint verify chuỗi toàn vẹn (chưa làm — tùy chọn nâng cao)
 
 ## Phase 5 — Security & Identity
-- [ ] 🔴 Module IAM: đăng ký/đăng nhập, mật khẩu Argon2/BCrypt
-- [ ] 🔴 JWT access + refresh, filter xác thực
-- [ ] 🔴 Ownership check mọi truy cập accountId
-- [ ] 🔴 Vai trò CUSTOMER/ADMIN/AUDITOR + phân quyền endpoint
-- [ ] 🟡 Rate limiting (login + ghi), security headers, CORS đúng
-- [ ] 🟡 OWASP Dependency-Check trong CI
+- [x] 🔴 Module IAM: đăng ký/đăng nhập, mật khẩu BCrypt (ADR-0009)
+- [x] 🔴 JWT access + refresh, xác thực qua Spring Security Resource Server
+- [x] 🔴 Ownership check mọi truy cập accountId (AccessControl)
+- [x] 🔴 Vai trò CUSTOMER/ADMIN/AUDITOR + phân quyền endpoint
+- [x] 🟡 Security headers (HSTS) + CORS (rate limiting để sau)
+- [ ] 🟡 OWASP Dependency-Check trong CI (để sau — chậm/cần NVD key)
 - [ ] 🟢 Maker-checker cho giao dịch vượt ngưỡng
 - [ ] 🟢 2FA/TOTP cho thao tác nhạy cảm
 

@@ -36,9 +36,9 @@
 
 > Cập nhật mục này khi tiến độ thay đổi.
 
-- **Phase hiện tại:** Phase 4 ✅ xong (điểm dừng an toàn cho phỏng vấn) → tùy chọn Phase 5/6/7
-- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0008 đã có
-- **Code:** backend/ đầy đủ ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal; 29 test, CI xanh. Xem [README gốc](../README.md) để chạy.
+- **Phase hiện tại:** Phase 5 ✅ xong → tùy chọn Phase 6 (Observability/Perf) hoặc Phase 7 (Frontend)
+- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0009 đã có
+- **Code:** backend/ đầy đủ ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal + bảo mật JWT/ownership/vai trò; 35 test, CI xanh. Xem [README gốc](../README.md) để chạy.
 - **Demo concept:** Đã có bản preview HTML/JS (UI/UX prototype)
 
 ## Quy ước tài liệu

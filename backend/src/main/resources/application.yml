@@ -27,3 +27,9 @@ management:
   endpoint:
     health:
       show-details: always
+
+ledger:
+  vault:
+    # Lượng tiền "khai sinh" nạp vào SYSTEM_VAULT; cũng là hằng số integrity check đối chiếu.
+    seed-amount: 1000000000000.00
+

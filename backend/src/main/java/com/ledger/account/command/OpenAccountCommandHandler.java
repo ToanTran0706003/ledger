@@ -1,9 +1,9 @@
 package com.ledger.account.command;
 
 import com.ledger.account.domain.AccountAggregate;
-import com.ledger.account.projection.AccountBalanceProjector;
 import com.ledger.shared.domain.DomainEvent;
 import com.ledger.shared.eventstore.EventStore;
+import com.ledger.shared.projection.ProjectionDispatcher;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,11 +14,11 @@ public class OpenAccountCommandHandler {
     private static final String AGGREGATE_TYPE = "Account";
 
     private final EventStore eventStore;
-    private final AccountBalanceProjector projector;
+    private final ProjectionDispatcher dispatcher;
 
-    public OpenAccountCommandHandler(EventStore eventStore, AccountBalanceProjector projector) {
+    public OpenAccountCommandHandler(EventStore eventStore, ProjectionDispatcher dispatcher) {
         this.eventStore = eventStore;
-        this.projector = projector;
+        this.dispatcher = dispatcher;
     }
 
     /**
@@ -33,10 +33,10 @@ public class OpenAccountCommandHandler {
 
         eventStore.append(accountId, AGGREGATE_TYPE, account.version(), account.uncommittedEvents());
 
-        // Phase 1: project đồng bộ trong cùng transaction. Transactional outbox (tách
-        // write side khỏi projection) sẽ được đưa vào ở Phase 3.
+        // Phase 1/2: project đồng bộ trong cùng transaction. Transactional outbox
+        // (tách write side khỏi projection) sẽ được đưa vào ở Phase 3.
         for (DomainEvent event : account.uncommittedEvents()) {
-            projector.on(event);
+            dispatcher.dispatch(event);
         }
         account.markEventsCommitted();
 

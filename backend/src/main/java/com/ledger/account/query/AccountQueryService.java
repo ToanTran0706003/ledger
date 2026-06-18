@@ -1,5 +1,6 @@
 package com.ledger.account.query;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,25 @@ public class AccountQueryService {
 
     public AccountQueryService(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
+    }
+
+    public List<TransactionHistoryView> findHistory(String accountId) {
+        return jdbc.query(
+                """
+                SELECT tx_id, direction, amount, counterparty, balance_after, movement_type, occurred_at
+                FROM rm_transaction_history
+                WHERE account_id = ?
+                ORDER BY occurred_at DESC, id DESC
+                """,
+                (rs, n) -> new TransactionHistoryView(
+                        rs.getString("tx_id"),
+                        rs.getString("direction"),
+                        rs.getBigDecimal("amount"),
+                        rs.getString("counterparty"),
+                        rs.getBigDecimal("balance_after"),
+                        rs.getString("movement_type"),
+                        rs.getTimestamp("occurred_at").toInstant()),
+                accountId);
     }
 
     public Optional<AccountBalanceView> findBalance(String accountId) {

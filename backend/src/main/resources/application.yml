@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: ledger
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ledger
+    username: ledger
+    password: ledger
+
+  jpa:
+    hibernate:
+      # Flyway quản lý schema, không để Hibernate tự tạo/sửa bảng.
+      ddl-auto: none
+    # Tắt Open-Session-In-View: tránh giữ session DB suốt vòng đời request (anti-pattern).
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    # Cho phép chạy migration trên DB đã có dữ liệu/bảng sẵn.
+    baseline-on-migrate: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

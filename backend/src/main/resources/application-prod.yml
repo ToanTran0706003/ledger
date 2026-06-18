@@ -1,0 +1,7 @@
+# Profile prod: log JSON có cấu trúc (ECS) kèm correlationId/userId (qua MDC) — sẵn sàng
+# cho hệ thống thu thập log. Kích hoạt: SPRING_PROFILES_ACTIVE=prod.
+# JWT secret BẮT BUỘC lấy từ biến môi trường LEDGER_JWT_SECRET (xem application.yml).
+logging:
+  structured:
+    format:
+      console: ecs

@@ -1,6 +1,7 @@
 package com.ledger.shared.concurrency;
 
 import com.ledger.shared.eventstore.ConcurrencyConflictException;
+import com.ledger.shared.observability.LedgerMetrics;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Component;
@@ -17,9 +18,11 @@ public class RetryingTransactionExecutor {
     private static final int DEFAULT_MAX_ATTEMPTS = 20;
 
     private final TransactionTemplate transactionTemplate;
+    private final LedgerMetrics metrics;
 
-    public RetryingTransactionExecutor(TransactionTemplate transactionTemplate) {
+    public RetryingTransactionExecutor(TransactionTemplate transactionTemplate, LedgerMetrics metrics) {
         this.transactionTemplate = transactionTemplate;
+        this.metrics = metrics;
     }
 
     public <T> T execute(Supplier<T> action) {
@@ -33,6 +36,7 @@ public class RetryingTransactionExecutor {
                 return transactionTemplate.execute(status -> action.get());
             } catch (ConcurrencyConflictException e) {
                 last = e;
+                metrics.recordConflict();
                 backoff(attempt);
             }
         }

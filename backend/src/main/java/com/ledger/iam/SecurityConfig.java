@@ -48,7 +48,9 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // Prometheus scrape công khai cho demo; ở prod nên đặt sau cổng/mạng quản trị riêng.
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/prometheus", "/actuator/info")
+                        .permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/transactions/*/reverse").hasRole("ADMIN")
                         .requestMatchers("/audit/**").hasAnyRole("ADMIN", "AUDITOR")

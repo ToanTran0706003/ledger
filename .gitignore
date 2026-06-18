@@ -1,0 +1,33 @@
+# Build output
+build/
+out/
+bin/
+target/
+
+# Gradle
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+*.tmp
+
+# Secrets / local env (không commit cấu hình nhạy cảm)
+*.env
+.env
+application-local.yml
+application-local.properties
+
+# Docker volumes (nếu mount local)
+ops/pgdata/

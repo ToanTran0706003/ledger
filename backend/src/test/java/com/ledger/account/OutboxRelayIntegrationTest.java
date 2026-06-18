@@ -52,6 +52,7 @@ class OutboxRelayIntegrationTest {
     @BeforeEach
     void reset() {
         jdbc.update("TRUNCATE TABLE events RESTART IDENTITY");
+        jdbc.update("TRUNCATE TABLE snapshots");
         jdbc.update("TRUNCATE TABLE outbox RESTART IDENTITY");
         jdbc.update("TRUNCATE TABLE idempotency_keys");
         jdbc.update("TRUNCATE TABLE rm_transaction_history RESTART IDENTITY");
@@ -73,7 +74,7 @@ class OutboxRelayIntegrationTest {
         // Append một posting trực tiếp, KHÔNG drain (mô phỏng app crash trước khi project).
         DomainEvent credit = new MoneyPosted(
                 alice, "tx-orphan", Direction.CREDIT, new BigDecimal("500"),
-                MovementType.DEPOSIT, "SYSTEM_VAULT", Instant.now());
+                MovementType.DEPOSIT, "SYSTEM_VAULT", Instant.now(), null);
         eventStore.append(alice, "Account", 1, List.of(credit));
 
         // Read model chưa phản ánh, nhưng outbox đã giữ event (không mất).

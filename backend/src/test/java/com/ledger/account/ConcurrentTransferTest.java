@@ -57,6 +57,7 @@ class ConcurrentTransferTest {
     @BeforeEach
     void reset() {
         jdbc.update("TRUNCATE TABLE events RESTART IDENTITY");
+        jdbc.update("TRUNCATE TABLE snapshots");
         jdbc.update("TRUNCATE TABLE outbox RESTART IDENTITY");
         jdbc.update("TRUNCATE TABLE idempotency_keys");
         jdbc.update("TRUNCATE TABLE rm_transaction_history RESTART IDENTITY");

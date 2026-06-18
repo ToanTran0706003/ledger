@@ -10,3 +10,6 @@ ledger:
   outbox:
     # Test tự gọi drain (qua handler) -> tắt scheduler để kết quả tất định, không flaky.
     scheduler-enabled: false
+  snapshot:
+    # N nhỏ để test snapshot kích hoạt nhanh.
+    every-n-events: 3

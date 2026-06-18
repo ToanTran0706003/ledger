@@ -22,6 +22,8 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 3 | **Transactional Outbox** thay vì message broker ở giai đoạn đầu | `docs/adr/0003-transactional-outbox.md` |
 | 4 | **Double-entry** với tài khoản **SYSTEM_VAULT** để giải "tiền từ đâu ra" | `docs/adr/0004-double-entry-system-vault.md` |
 | 5 | **Account-centric postings** (`MoneyPosted`) cho double-entry | `docs/adr/0005-account-centric-postings.md` |
+| 6 | **Transactional outbox + retry** (read-your-writes qua drain sau commit) | `docs/adr/0006-transactional-outbox-and-retry.md` |
+| 7 | **Idempotency-Key** cho endpoint ghi tiền | `docs/adr/0007-idempotency-keys.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -50,23 +52,24 @@ P8 Advanced Business → P9 Distributed → P10 Polish.
 Điểm dừng an toàn: sau **P4** đã đủ ấn tượng cho phỏng vấn.
 
 ## Trạng thái hiện tại
-**Phase 0 ✅ + Phase 1 ✅ + Phase 2 ✅ (đã verify end-to-end).** Repo public:
+**Phase 0 → 3 đều ✅ (đã verify end-to-end, CI xanh).** Repo public:
 https://github.com/ToanTran0706003/ledger
-- Phase 0: repo Git, skeleton Spring Boot 3.5.15/Java 21, `/actuator/health` = UP.
-- Phase 1 (Walking Skeleton): event store JDBC, `AccountAggregate`+`AccountOpened`, projector
-  → `rm_account_balance`, REST mở/xem số dư, rebuild read model.
-- Phase 2 (Core Ledger): double-entry account-centric (`MoneyPosted`, ADR-0005), SYSTEM_VAULT
-  seed GENESIS, deposit/withdraw/transfer (`POST /accounts/{id}/deposit|withdraw`, `POST /transfers`),
-  invariant không-âm, `rm_transaction_history` + `GET /accounts/{id}/history`, integrity check
-  (`GET /audit/integrity`), ProblemDetail cho lỗi, CI GitHub Actions (build+test với Postgres service).
-- Test: ~12 unit + 11 integration, tất cả pass.
+- Phase 0: skeleton Spring Boot 3.5.15/Java 21, `/actuator/health` = UP.
+- Phase 1: event store JDBC, AccountAggregate+AccountOpened, projector → rm_account_balance, rebuild.
+- Phase 2: double-entry account-centric (MoneyPosted, ADR-0005), SYSTEM_VAULT GENESIS, deposit/
+  withdraw/transfer, invariant không-âm, rm_transaction_history, integrity check, ProblemDetail, CI.
+- Phase 3 (Correctness): transactional outbox + OutboxRelay (read-your-writes qua drain sau commit,
+  scheduler là lưới an toàn), RetryingTransactionExecutor (retry trên ConcurrencyConflict),
+  Idempotency-Key cho endpoint ghi tiền (ADR-0006/0007). Test: property-based (jqwik),
+  concurrency (15 thread rút 1 account), idempotency, outbox durability.
+- Test tổng: **25 test, 0 fail**.
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy
 trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (không phải JDK 26) chạy Gradle.
 
-**Tiếp theo:** Phase 3 — Correctness under Pressure (optimistic concurrency + retry, idempotency key,
-transactional outbox, property-based & concurrency test). Xem `docs/08-todo-backlog.md`.
+**Tiếp theo:** Phase 4 — Time & Audit (snapshot, time-travel query số dư theo thời điểm,
+reversal, audit metadata). Xem `docs/08-todo-backlog.md`. (Điểm dừng an toàn cho phỏng vấn là sau Phase 4.)
 
 ## Tài liệu nền
 `docs/`: 00 vision · 01 architecture · 02 domain · 03 data/eventstore · 04 security ·

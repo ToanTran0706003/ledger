@@ -43,14 +43,14 @@
 - [x] 🟡 Validation đầu vào (Bean Validation) + lỗi rõ ràng (ProblemDetail)
 
 ## Phase 3 — Correctness under Pressure
-- [ ] 🔴 UNIQUE(aggregate_id, aggregate_version) + map lỗi → `ConcurrencyConflict`
-- [ ] 🔴 Cơ chế retry khi conflict (đọc lại version, validate lại)
-- [ ] 🔴 Bảng + filter Idempotency-Key (IN_PROGRESS/COMPLETED, trả lại response cũ)
-- [ ] 🔴 Transactional outbox + relay dispatch in-process
-- [ ] 🔴 Property-based test (jqwik): N giao dịch ngẫu nhiên, assert 3 invariant
-- [ ] 🔴 Concurrency test: nhiều thread rút cùng account, không âm sai
-- [ ] 🟡 Test idempotency: gửi 2 lần cùng key → 1 hiệu lực
-- [ ] 🟡 Test outbox: crash giữa chừng không mất event
+- [x] 🔴 UNIQUE(aggregate_id, aggregate_version) + map lỗi → `ConcurrencyConflict`
+- [x] 🔴 Cơ chế retry khi conflict (đọc lại version, validate lại) — RetryingTransactionExecutor (ADR-0006)
+- [x] 🔴 Idempotency-Key (IN_PROGRESS/COMPLETED, trả lại response cũ) — IdempotencyService (ADR-0007)
+- [x] 🔴 Transactional outbox + relay dispatch in-process (ADR-0006)
+- [x] 🔴 Property-based test (jqwik): N giao dịch ngẫu nhiên, assert invariant
+- [x] 🔴 Concurrency test: nhiều thread rút cùng account, không âm sai
+- [x] 🟡 Test idempotency: gửi 2 lần cùng key → 1 hiệu lực
+- [x] 🟡 Test outbox: event đã commit nhưng chưa drain vẫn được relay project
 
 ## Phase 4 — Time & Audit
 - [ ] 🔴 Bảng `snapshots` + ghi snapshot mỗi N event

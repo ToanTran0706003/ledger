@@ -83,6 +83,9 @@ https://github.com/ToanTran0706003/ledger
   vault giữ integrity), lệnh chuyển tiền định kỳ (standing order + scheduler, at-most-once) (ADR-0012).
   Làm theo TDD + một lượt /code-review (phát hiện & sửa: bug cắt dưới giây khi tính lãi, clamp asOf,
   at-most-once cho standing order, validate tài khoản nhận, xóa dead code).
+  **Đã surface lên UI**: mở tài khoản Tiết kiệm (chọn loại), màn "Định kỳ" tạo/liệt kê lệnh —
+  scheduler tự chuyển tiền (đã verify trực quan). Read model thêm cột account_type (migration V10).
+  Frontend giờ **6 màn** (thêm Định kỳ).
 - Backend test: **47 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest, standing order).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop

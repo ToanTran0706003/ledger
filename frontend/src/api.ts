@@ -5,10 +5,20 @@ export type Tokens = { accessToken: string; refreshToken: string; tokenType: str
 export type Account = {
   accountId: string;
   owner: string;
+  type: string;
   currency: string;
   balance: number;
   available: number;
   status: string;
+};
+export type StandingOrderView = {
+  id: string;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  intervalSeconds: number;
+  nextRunAt: string;
+  active: boolean;
 };
 export type HistoryRow = {
   txId: string;
@@ -75,12 +85,18 @@ export const api = {
   login: (username: string, password: string) =>
     request<Tokens>("/auth/login", { method: "POST", body: { username, password }, auth: false }),
   myAccounts: () => request<Account[]>("/accounts"),
-  openAccount: () => request<{ accountId: string }>("/accounts", { method: "POST", body: { type: "CUSTOMER" } }),
+  openAccount: (type: string) => request<{ accountId: string }>("/accounts", { method: "POST", body: { type } }),
   balance: (id: string) => request<Account>(`/accounts/${id}/balance`),
   balanceAsOf: (id: string, asOf: string) =>
     request<BalanceAt>(`/accounts/${id}/balance?asOf=${encodeURIComponent(asOf)}`),
   history: (id: string) => request<HistoryRow[]>(`/accounts/${id}/history`),
   integrity: () => request<IntegrityReport>("/audit/integrity"),
+  standingOrders: () => request<StandingOrderView[]>("/standing-orders"),
+  createStandingOrder: (fromAccountId: string, toAccountId: string, amount: number, intervalSeconds: number) =>
+    request<{ id: string }>("/standing-orders", {
+      method: "POST",
+      body: { fromAccountId, toAccountId, amount, intervalSeconds },
+    }),
   deposit: (id: string, amount: number) =>
     request<{ txId: string }>(`/accounts/${id}/deposit`, { method: "POST", body: { amount }, idempotent: true }),
   withdraw: (id: string, amount: number) =>

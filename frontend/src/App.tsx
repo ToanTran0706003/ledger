@@ -4,10 +4,16 @@ import { Login } from "./views/Login";
 import { Dashboard } from "./views/Dashboard";
 import { AccountView } from "./views/AccountView";
 import { Transfer } from "./views/Transfer";
+import { StandingOrders } from "./views/StandingOrders";
 import { Audit } from "./views/Audit";
 import type { Notify } from "./ui";
 
-type View = { name: "dashboard" } | { name: "account"; id: string } | { name: "transfer" } | { name: "audit" };
+type View =
+  | { name: "dashboard" }
+  | { name: "account"; id: string }
+  | { name: "transfer" }
+  | { name: "standing" }
+  | { name: "audit" };
 type ToastState = { msg: string; kind: "ok" | "err" } | null;
 
 export default function App() {
@@ -57,6 +63,9 @@ function AppShell({ notify }: { notify: Notify }) {
           <button className={section === "transfer" ? "active" : ""} onClick={() => setView({ name: "transfer" })}>
             Chuyển tiền
           </button>
+          <button className={section === "standing" ? "active" : ""} onClick={() => setView({ name: "standing" })}>
+            Định kỳ
+          </button>
           <button className={section === "audit" ? "active" : ""} onClick={() => setView({ name: "audit" })}>
             Kiểm toán
           </button>
@@ -76,6 +85,7 @@ function AppShell({ notify }: { notify: Notify }) {
           <AccountView accountId={view.id} notify={notify} onBack={() => setView({ name: "dashboard" })} />
         )}
         {view.name === "transfer" && <Transfer notify={notify} onDone={() => setView({ name: "dashboard" })} />}
+        {view.name === "standing" && <StandingOrders notify={notify} />}
         {view.name === "audit" && <Audit notify={notify} />}
       </main>
     </div>

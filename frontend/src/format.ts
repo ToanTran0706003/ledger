@@ -23,7 +23,21 @@ const MOVEMENT_LABELS: Record<string, string> = {
   TRANSFER: "Chuyển tiền",
   GENESIS: "Khởi tạo",
   REVERSAL: "Bù trừ",
+  INTEREST: "Lãi",
 };
 export function movementLabel(type: string): string {
   return MOVEMENT_LABELS[type] ?? type;
+}
+
+export function accountTypeLabel(type: string): string {
+  if (type === "SAVINGS") return "Tiết kiệm";
+  if (type === "SYSTEM_VAULT") return "Két hệ thống";
+  return "Thanh toán";
+}
+
+export function intervalLabel(seconds: number): string {
+  if (seconds % 86400 === 0) return `mỗi ${seconds / 86400} ngày`;
+  if (seconds % 3600 === 0) return `mỗi ${seconds / 3600} giờ`;
+  if (seconds % 60 === 0) return `mỗi ${seconds / 60} phút`;
+  return `mỗi ${seconds} giây`;
 }

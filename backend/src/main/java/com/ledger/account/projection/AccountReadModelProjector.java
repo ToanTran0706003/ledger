@@ -37,11 +37,11 @@ public class AccountReadModelProjector implements Projector {
     private void onAccountOpened(AccountOpened e) {
         jdbc.update(
                 """
-                INSERT INTO rm_account_balance (account_id, owner, balance, available, status)
-                VALUES (?, ?, 0, 0, 'ACTIVE')
+                INSERT INTO rm_account_balance (account_id, owner, account_type, balance, available, status)
+                VALUES (?, ?, ?, 0, 0, 'ACTIVE')
                 ON CONFLICT (account_id) DO NOTHING
                 """,
-                e.accountId(), e.owner());
+                e.accountId(), e.owner(), e.type().name());
     }
 
     private void onMoneyPosted(MoneyPosted e) {

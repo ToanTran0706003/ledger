@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api";
 import type { Account, HistoryRow, IntegrityReport } from "../api";
-import { money, shortId, dateTime, movementLabel } from "../format";
+import { money, shortId, dateTime, movementLabel, accountTypeLabel } from "../format";
+import { Modal } from "../ui";
 import type { Notify } from "../ui";
 
 type Activity = HistoryRow & { accountId: string };
@@ -10,7 +11,7 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
   const [accounts, setAccounts] = useState<Account[] | null>(null);
   const [activity, setActivity] = useState<Activity[]>([]);
   const [integrity, setIntegrity] = useState<IntegrityReport | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [opening, setOpening] = useState(false);
 
   async function load() {
     try {
@@ -35,19 +36,6 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function openAccount() {
-    setBusy(true);
-    try {
-      await api.openAccount();
-      notify("Đã mở tài khoản.");
-      await load();
-    } catch (ex) {
-      notify(ex instanceof ApiError ? ex.message : "Không mở được tài khoản.", "err");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   if (accounts === null) {
     return (
       <div className="stack">
@@ -67,7 +55,7 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
           <div className="eyebrow">Tổng quan</div>
           <h1>Bảng điều khiển</h1>
         </div>
-        <button className="primary" onClick={openAccount} disabled={busy}>
+        <button className="primary" onClick={() => setOpening(true)}>
           Mở tài khoản
         </button>
       </div>
@@ -112,7 +100,7 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
           {accounts.map((a) => (
             <button key={a.accountId} className="card account-tile" onClick={() => onOpenAccount(a.accountId)}>
               <div className="spread">
-                <span className="tag">{a.status}</span>
+                <span className="tag">{accountTypeLabel(a.type)}</span>
                 <span className="id">{shortId(a.accountId)}</span>
               </div>
               <div className="balance-hero" style={{ fontSize: 26 }}>
@@ -144,6 +132,60 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
           </div>
         </div>
       )}
+
+      {opening && (
+        <OpenAccountModal
+          notify={notify}
+          onClose={() => setOpening(false)}
+          onOpened={async () => {
+            setOpening(false);
+            await load();
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function OpenAccountModal({
+  notify,
+  onClose,
+  onOpened,
+}: {
+  notify: Notify;
+  onClose: () => void;
+  onOpened: () => Promise<void>;
+}) {
+  const [type, setType] = useState("CUSTOMER");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    setBusy(true);
+    try {
+      await api.openAccount(type);
+      notify(type === "SAVINGS" ? "Đã mở tài khoản tiết kiệm." : "Đã mở tài khoản.");
+      await onOpened();
+    } catch (ex) {
+      notify(ex instanceof ApiError ? ex.message : "Không mở được tài khoản.", "err");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal title="Mở tài khoản" onClose={onClose}>
+      <div className="stack">
+        <div className="field">
+          <label htmlFor="acctype">Loại tài khoản</label>
+          <select id="acctype" value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="CUSTOMER">Thanh toán</option>
+            <option value="SAVINGS">Tiết kiệm (có lãi)</option>
+          </select>
+        </div>
+        <button className="primary" onClick={submit} disabled={busy}>
+          {busy ? "Đang mở" : "Mở tài khoản"}
+        </button>
+      </div>
+    </Modal>
   );
 }

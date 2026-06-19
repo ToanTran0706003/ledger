@@ -18,18 +18,12 @@ public class AccountQueryService {
     public List<AccountBalanceView> findByOwner(String owner) {
         return jdbc.query(
                 """
-                SELECT account_id, owner, currency, balance, available, status
+                SELECT account_id, owner, account_type, currency, balance, available, status
                 FROM rm_account_balance
                 WHERE owner = ?
                 ORDER BY account_id
                 """,
-                (rs, n) -> new AccountBalanceView(
-                        rs.getString("account_id"),
-                        rs.getString("owner"),
-                        rs.getString("currency"),
-                        rs.getBigDecimal("balance"),
-                        rs.getBigDecimal("available"),
-                        rs.getString("status")),
+                (rs, n) -> mapBalance(rs),
                 owner);
     }
 
@@ -56,19 +50,24 @@ public class AccountQueryService {
         return jdbc
                 .query(
                         """
-                        SELECT account_id, owner, currency, balance, available, status
+                        SELECT account_id, owner, account_type, currency, balance, available, status
                         FROM rm_account_balance
                         WHERE account_id = ?
                         """,
-                        (rs, n) -> new AccountBalanceView(
-                                rs.getString("account_id"),
-                                rs.getString("owner"),
-                                rs.getString("currency"),
-                                rs.getBigDecimal("balance"),
-                                rs.getBigDecimal("available"),
-                                rs.getString("status")),
+                        (rs, n) -> mapBalance(rs),
                         accountId)
                 .stream()
                 .findFirst();
+    }
+
+    private static AccountBalanceView mapBalance(java.sql.ResultSet rs) throws java.sql.SQLException {
+        return new AccountBalanceView(
+                rs.getString("account_id"),
+                rs.getString("owner"),
+                rs.getString("account_type"),
+                rs.getString("currency"),
+                rs.getBigDecimal("balance"),
+                rs.getBigDecimal("available"),
+                rs.getString("status"));
     }
 }

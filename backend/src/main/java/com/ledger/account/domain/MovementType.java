@@ -10,5 +10,6 @@ public enum MovementType {
     TRANSFER,
     GENESIS,
     REVERSAL,
-    INTEREST
+    INTEREST,
+    CAPTURE
 }

@@ -1,6 +1,8 @@
 package com.ledger.account;
 
 import com.ledger.account.domain.AccountOpened;
+import com.ledger.account.domain.HoldPlaced;
+import com.ledger.account.domain.HoldReleased;
 import com.ledger.account.domain.MoneyPosted;
 import com.ledger.shared.eventstore.EventTypeRegistry;
 import org.springframework.context.annotation.Configuration;
@@ -15,5 +17,7 @@ public class AccountModuleConfig {
     public AccountModuleConfig(EventTypeRegistry registry) {
         registry.register(AccountOpened.class);
         registry.register(MoneyPosted.class);
+        registry.register(HoldPlaced.class);
+        registry.register(HoldReleased.class);
     }
 }

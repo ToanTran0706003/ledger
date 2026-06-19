@@ -36,9 +36,9 @@
 
 > Cập nhật mục này khi tiến độ thay đổi.
 
-- **Phase hiện tại:** Phase 7 ✅ xong → tùy chọn Phase 8 (Advanced) / 9 (Distributed) / 10 (Polish)
-- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0011 + `benchmarks/` đã có
-- **Code:** backend/ (ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal + JWT/ownership/vai trò + observability) **và** frontend/ (React+TS, design anti-slop, signature replay); 36 backend test, CI build cả hai. Xem [README gốc](../README.md) để chạy.
+- **Phase hiện tại:** Phase 8 (một phần) ✅ → tùy chọn hoàn tất Phase 8 / Phase 9 / Phase 10
+- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0012 + `benchmarks/` đã có
+- **Code:** backend/ (ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal + JWT/ownership/vai trò + observability + tiết kiệm/lãi & lệnh định kỳ) **và** frontend/ (React+TS, design anti-slop, signature replay); 47 backend test, CI build cả hai. Xem [README gốc](../README.md) để chạy.
 - **Demo concept:** Đã có bản preview HTML/JS (UI/UX prototype)
 
 ## Quy ước tài liệu

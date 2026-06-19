@@ -89,11 +89,11 @@
 - [x] 🟡 Copy theo ngôn ngữ người dùng, không sáo rỗng, không em-dash
 
 ## Phase 8 — Advanced Business
-- [ ] 🟡 Tài khoản tiết kiệm + tính lãi qua replay (InterestAccrued)
-- [ ] 🟡 Chuyển tiền định kỳ (scheduler + standing order)
-- [ ] 🟡 Hold/reservation + hết hạn tự nhả
-- [ ] 🟢 Fraud detection rule-based + FraudAlertRaised + auto-freeze
-- [ ] 🟢 Hạn mức giao dịch theo ngày
+- [x] 🟡 Tài khoản tiết kiệm + tính lãi qua replay (movementType INTEREST, ADR-0012)
+- [x] 🟡 Chuyển tiền định kỳ (scheduler + standing order, ADR-0012)
+- [ ] 🟡 Hold/reservation + hết hạn tự nhả (chưa làm)
+- [ ] 🟢 Fraud detection rule-based + FraudAlertRaised + auto-freeze (chưa làm)
+- [ ] 🟢 Hạn mức giao dịch theo ngày (chưa làm)
 
 ## Phase 9 — Distributed (tùy chọn)
 - [ ] 🟢 Tách read DB / write DB

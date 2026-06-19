@@ -42,6 +42,13 @@ ledger:
   snapshot:
     # Ghi snapshot mỗi N event trên một aggregate để load ≈ hằng số.
     every-n-events: 50
+  savings:
+    # Lãi suất năm cho tài khoản tiết kiệm (5%).
+    annual-rate: 0.05
+  standing-orders:
+    # Scheduler chạy lệnh chuyển định kỳ đến hạn. Tắt trong test để tất định.
+    scheduler-enabled: true
+    poll-interval-ms: 5000
   security:
     jwt:
       # HS256: secret tối thiểu 32 byte. ĐỔI trong production (qua biến môi trường).

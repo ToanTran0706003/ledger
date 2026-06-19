@@ -9,5 +9,6 @@ public enum MovementType {
     WITHDRAWAL,
     TRANSFER,
     GENESIS,
-    REVERSAL
+    REVERSAL,
+    INTEREST
 }

@@ -28,6 +28,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 9 | **Security**: JWT (HS256) + ownership check + vai trò, IAM dùng JPA | `docs/adr/0009-security-and-identity.md` |
 | 10 | **Observability & Perf**: Prometheus metrics, structured logs, benchmark | `docs/adr/0010-observability-and-performance.md` |
 | 11 | **Frontend** React+TS+Vite, design tokens anti-slop (taste-skill) | `docs/adr/0011-frontend-and-design-system.md` |
+| 12 | **Advanced business**: tiết kiệm/lãi qua replay, lệnh định kỳ | `docs/adr/0012-advanced-business.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -78,14 +79,18 @@ https://github.com/ToanTran0706003/ledger
   feed), chi tiết tài khoản (replay + biểu đồ số dư SVG + slider time-travel + sao kê), chuyển tiền,
   kiểm toán (invariant double-entry). Signature "replay dựng số dư từ chuỗi sự kiện", accessibility
   AA, reduced-motion (ADR-0011). Backend thêm `GET /accounts` + `/audit/integrity` cho user. CI build cả frontend.
-- Backend test: **36 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics).
+- Phase 8 (Advanced Business): tài khoản tiết kiệm + tính lãi qua replay (time-weighted, lãi từ
+  vault giữ integrity), lệnh chuyển tiền định kỳ (standing order + scheduler, at-most-once) (ADR-0012).
+  Làm theo TDD + một lượt /code-review (phát hiện & sửa: bug cắt dưới giây khi tính lãi, clamp asOf,
+  at-most-once cho standing order, validate tài khoản nhận, xóa dead code).
+- Backend test: **47 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest, standing order).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy
 trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (không phải JDK 26) chạy Gradle.
 
-**Tiếp theo (tùy chọn):** Phase 8 — Advanced Business (tiết kiệm/lãi qua replay, standing order,
-hold, fraud), Phase 9 — Distributed, hoặc Phase 10 — Polish & README. Xem `docs/08-todo-backlog.md`.
+**Tiếp theo (tùy chọn):** hoàn tất Phase 8 (hold/reservation, fraud, hạn mức ngày), surface Phase 8
+lên UI, Phase 9 — Distributed, hoặc Phase 10 — Polish & README. Xem `docs/08-todo-backlog.md`.
 
 ## Tài liệu nền
 `docs/`: 00 vision · 01 architecture · 02 domain · 03 data/eventstore · 04 security ·

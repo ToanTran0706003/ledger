@@ -3,9 +3,11 @@ import { AuthProvider, useAuth } from "./auth";
 import { Login } from "./views/Login";
 import { Dashboard } from "./views/Dashboard";
 import { AccountView } from "./views/AccountView";
+import { Transfer } from "./views/Transfer";
+import { Audit } from "./views/Audit";
 import type { Notify } from "./ui";
 
-type View = { name: "dashboard" } | { name: "account"; id: string };
+type View = { name: "dashboard" } | { name: "account"; id: string } | { name: "transfer" } | { name: "audit" };
 type ToastState = { msg: string; kind: "ok" | "err" } | null;
 
 export default function App() {
@@ -40,12 +42,25 @@ function AppShell({ notify }: { notify: Notify }) {
   const { username, logout } = useAuth();
   const [view, setView] = useState<View>({ name: "dashboard" });
 
+  const section = view.name === "account" ? "dashboard" : view.name;
+
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">
           <span className="ticks">≣</span> Ledger
         </div>
+        <nav className="nav">
+          <button className={section === "dashboard" ? "active" : ""} onClick={() => setView({ name: "dashboard" })}>
+            Tổng quan
+          </button>
+          <button className={section === "transfer" ? "active" : ""} onClick={() => setView({ name: "transfer" })}>
+            Chuyển tiền
+          </button>
+          <button className={section === "audit" ? "active" : ""} onClick={() => setView({ name: "audit" })}>
+            Kiểm toán
+          </button>
+        </nav>
         <div className="row">
           <span className="muted hide-sm">{username}</span>
           <button className="ghost" onClick={logout}>
@@ -54,11 +69,14 @@ function AppShell({ notify }: { notify: Notify }) {
         </div>
       </header>
       <main className="content">
-        {view.name === "dashboard" ? (
+        {view.name === "dashboard" && (
           <Dashboard notify={notify} onOpenAccount={(id) => setView({ name: "account", id })} />
-        ) : (
+        )}
+        {view.name === "account" && (
           <AccountView accountId={view.id} notify={notify} onBack={() => setView({ name: "dashboard" })} />
         )}
+        {view.name === "transfer" && <Transfer notify={notify} onDone={() => setView({ name: "dashboard" })} />}
+        {view.name === "audit" && <Audit notify={notify} />}
       </main>
     </div>
   );

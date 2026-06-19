@@ -53,6 +53,8 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/transactions/*/reverse").hasRole("ADMIN")
+                        // Integrity là chỉ số minh bạch "sổ luôn cân" — cho mọi user đã đăng nhập xem.
+                        .requestMatchers("/audit/integrity").authenticated()
                         .requestMatchers("/audit/**").hasAnyRole("ADMIN", "AUDITOR")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter())))

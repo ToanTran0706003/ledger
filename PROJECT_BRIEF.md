@@ -74,9 +74,10 @@ https://github.com/ToanTran0706003/ledger
   throughput, conflict rate, projection lag), structured JSON log (profile prod), index reversal,
   k6 load script + benchmark thật (ghi p99 ≈ 14.6ms, đọc p99 ≈ 4.3ms — vượt mục tiêu) (ADR-0010).
 - Phase 7 (Frontend): React + TypeScript + Vite (`frontend/`), design tokens tự dựng (anti-slop,
-  áp dụng skill taste-skill): đăng nhập/đăng ký, dashboard, nạp/rút/chuyển, sao kê dạng sổ cái,
-  time-travel viewer, **signature "replay dựng số dư từ chuỗi sự kiện"**, accessibility AA,
-  reduced-motion (ADR-0011). Backend thêm `GET /accounts` (tài khoản của tôi). CI build cả frontend.
+  áp dụng skill taste-skill). **5 màn**: đăng nhập, bảng điều khiển (chỉ số + integrity badge +
+  feed), chi tiết tài khoản (replay + biểu đồ số dư SVG + slider time-travel + sao kê), chuyển tiền,
+  kiểm toán (invariant double-entry). Signature "replay dựng số dư từ chuỗi sự kiện", accessibility
+  AA, reduced-motion (ADR-0011). Backend thêm `GET /accounts` + `/audit/integrity` cho user. CI build cả frontend.
 - Backend test: **36 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop

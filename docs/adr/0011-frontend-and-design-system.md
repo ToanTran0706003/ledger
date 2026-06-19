@@ -25,6 +25,13 @@ tinh thần doc 06: token có chủ đích, không mặc định).
   `min-h-[100dvh]`. **Không em-dash** trong copy. Không "hero 3 card generic", không glow tím AI.
 - Auth: JWT lưu localStorage; gắn Bearer + tự sinh Idempotency-Key cho thao tác ghi.
 
+**Bộ màn hình (5):** Đăng nhập/Đăng ký · Bảng điều khiển (chỉ số tổng quan + huy hiệu
+"Sổ cân" integrity + thẻ tài khoản + feed hoạt động) · Chi tiết tài khoản (replay +
+**biểu đồ vùng số dư theo thời gian** dựng bằng SVG tự viết + **slider time-travel** kéo
+được, kiểm chứng lại bằng API máy chủ + sao kê) · Chuyển tiền · Kiểm toán (khoe invariant
+double-entry: tổng số dư == lượng phát hành). `/audit/integrity` cho phép mọi user đăng
+nhập xem (chỉ số minh bạch); các endpoint /audit khác vẫn cần ADMIN/AUDITOR.
+
 **Backend bổ sung:** `GET /accounts` liệt kê tài khoản của người dùng đang đăng nhập
 (cho dashboard) — ownership theo `owner = userId`.
 

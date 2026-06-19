@@ -20,6 +20,7 @@ export type HistoryRow = {
   occurredAt: string;
 };
 export type BalanceAt = { accountId: string; asOf: string; balance: number };
+export type IntegrityReport = { totalBalance: number; expectedTotal: number; balanced: boolean };
 
 export class ApiError extends Error {
   status: number;
@@ -79,6 +80,7 @@ export const api = {
   balanceAsOf: (id: string, asOf: string) =>
     request<BalanceAt>(`/accounts/${id}/balance?asOf=${encodeURIComponent(asOf)}`),
   history: (id: string) => request<HistoryRow[]>(`/accounts/${id}/history`),
+  integrity: () => request<IntegrityReport>("/audit/integrity"),
   deposit: (id: string, amount: number) =>
     request<{ txId: string }>(`/accounts/${id}/deposit`, { method: "POST", body: { amount }, idempotent: true }),
   withdraw: (id: string, amount: number) =>

@@ -4,6 +4,7 @@ import { api, ApiError } from "../api";
 import type { Account, HistoryRow } from "../api";
 import { money, dateTime, movementLabel, shortId } from "../format";
 import { BalanceReplay } from "../BalanceReplay";
+import { AreaChart } from "../chart";
 import { Modal } from "../ui";
 import type { Notify } from "../ui";
 
@@ -13,14 +14,14 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
   const [account, setAccount] = useState<Account | null>(null);
   const [rows, setRows] = useState<HistoryRow[] | null>(null);
   const [modal, setModal] = useState<ModalKind>(null);
-  const [asOf, setAsOf] = useState("");
-  const [asOfBalance, setAsOfBalance] = useState<string | null>(null);
+  const [step, setStep] = useState(0);
 
   async function load() {
     try {
       const [a, h] = await Promise.all([api.balance(accountId), api.history(accountId)]);
       setAccount(a);
       setRows(h);
+      setStep(h.length); // mặc định ở hiện tại
     } catch (ex) {
       notify(ex instanceof ApiError ? ex.message : "Không tải được tài khoản.", "err");
     }
@@ -32,26 +33,35 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
   }, [accountId]);
 
   const currency = account?.currency ?? "VND";
+  const ordered = rows ? [...rows].reverse() : []; // cũ -> mới
+  const series = [0, ...ordered.map((r) => r.balanceAfter)]; // số dư theo thời gian, bắt đầu từ 0
+  const atStep = series[Math.min(step, series.length - 1)] ?? 0;
+  const stepTime = step > 0 && ordered[step - 1] ? ordered[step - 1].occurredAt : null;
 
-  async function checkAsOf() {
-    if (!asOf) return;
+  async function verifyAsOf() {
+    if (!stepTime) return;
     try {
-      const iso = new Date(asOf).toISOString();
-      const r = await api.balanceAsOf(accountId, iso);
-      setAsOfBalance(money(r.balance, currency));
+      const r = await api.balanceAsOf(accountId, new Date(stepTime).toISOString());
+      const match = r.balance === atStep;
+      notify(
+        match
+          ? `Máy chủ xác nhận: ${money(r.balance, currency)} tại thời điểm đó.`
+          : `Lệch: máy chủ trả ${money(r.balance, currency)}.`,
+        match ? "ok" : "err",
+      );
     } catch (ex) {
-      notify(ex instanceof ApiError ? ex.message : "Không truy vấn được số dư thời điểm.", "err");
+      notify(ex instanceof ApiError ? ex.message : "Không truy vấn được.", "err");
     }
   }
 
   return (
     <div className="stack">
       <button className="ghost" onClick={onBack}>
-        ← Tài khoản
+        ← Bảng điều khiển
       </button>
 
       {!account || !rows ? (
-        <div className="skeleton" style={{ height: 180 }} />
+        <div className="skeleton" style={{ height: 200 }} />
       ) : (
         <>
           <BalanceReplay rows={rows} currency={currency} />
@@ -62,16 +72,32 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
             </button>
             <button onClick={() => setModal("withdraw")}>Rút tiền</button>
             <button onClick={() => setModal("transfer")}>Chuyển tiền</button>
+            <span className="faint num" style={{ marginLeft: "auto", alignSelf: "center" }}>{shortId(accountId)}</span>
           </div>
 
           <div className="card">
-            <div className="eyebrow">Số dư theo thời điểm</div>
-            <div className="row" style={{ marginTop: 10, flexWrap: "wrap" }}>
-              <input type="datetime-local" value={asOf} onChange={(e) => setAsOf(e.target.value)} style={{ maxWidth: 240 }} />
-              <button onClick={checkAsOf} disabled={!asOf}>
-                Xem lại
+            <div className="spread">
+              <h2>Số dư theo thời gian</h2>
+              <span className="tag">Time travel</span>
+            </div>
+            <AreaChart values={series} highlight={step} />
+            <div className="row" style={{ marginTop: 12, flexWrap: "wrap" }}>
+              <input
+                type="range"
+                min={0}
+                max={rows.length}
+                value={step}
+                onChange={(e) => setStep(Number(e.target.value))}
+                aria-label="Tua thời điểm"
+                style={{ flex: 1, minWidth: 180 }}
+              />
+              <span className="num">{money(atStep, currency)}</span>
+            </div>
+            <div className="spread" style={{ marginTop: 8 }}>
+              <span className="faint num">{stepTime ? dateTime(stepTime) : "Khởi điểm"}</span>
+              <button className="ghost" onClick={verifyAsOf} disabled={!stepTime}>
+                Kiểm chứng từ máy chủ
               </button>
-              {asOfBalance && <span className="num">{asOfBalance}</span>}
             </div>
           </div>
 

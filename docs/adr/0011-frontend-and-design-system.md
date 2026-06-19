@@ -16,6 +16,10 @@ tinh thần doc 06: token có chủ đích, không mặc định).
 **Áp dụng skill `Leonxlnx/taste-skill` (anti-slop) + doc 06:**
 - Một theme tối duy nhất; nền zinc trung tính + **một** accent xanh (dưới 80% sat); **một**
   hệ bo góc; số tiền dùng **monospace tabular** (ngôn ngữ sổ cái: số xếp cột).
+- **Typography có cá tính** (áp dụng plugin frontend-design của Anthropic — tránh font hệ
+  thống generic): cặp **Space Grotesk** (chữ) + **JetBrains Mono** (số), nạp qua Google Fonts
+  có fallback hệ thống. **Chiều sâu thị giác** tiết chế: quầng sáng teal mờ ở đỉnh trang +
+  card có gradient/viền sáng đỉnh (không dùng gradient tím generic).
 - **Signature element**: "dựng lại số dư từ chuỗi sự kiện" — replay từng posting cộng dồn
   thành số dư (cho thấy event sourcing). Tôn trọng `prefers-reduced-motion`.
 - Sao kê dạng **sổ cái thật**: cột Thời gian / Loại / Ghi nợ / Ghi có / Số dư sau.

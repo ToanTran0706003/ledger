@@ -1,6 +1,8 @@
 package com.ledger.account;
 
+import com.ledger.account.domain.AccountFrozen;
 import com.ledger.account.domain.AccountOpened;
+import com.ledger.account.domain.AccountUnfrozen;
 import com.ledger.account.domain.HoldPlaced;
 import com.ledger.account.domain.HoldReleased;
 import com.ledger.account.domain.MoneyPosted;
@@ -19,5 +21,7 @@ public class AccountModuleConfig {
         registry.register(MoneyPosted.class);
         registry.register(HoldPlaced.class);
         registry.register(HoldReleased.class);
+        registry.register(AccountFrozen.class);
+        registry.register(AccountUnfrozen.class);
     }
 }

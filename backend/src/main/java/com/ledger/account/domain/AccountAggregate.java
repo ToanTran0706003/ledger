@@ -57,6 +57,10 @@ public class AccountAggregate extends AbstractAggregate {
             String counterpartyAccountId,
             String reversalOfTxId) {
         requirePositive(amount);
+        // Tài khoản bị đóng băng không được để tiền chảy ra (ghi có vẫn cho phép).
+        if (status == AccountStatus.FROZEN) {
+            throw new AccountFrozenException(accountId);
+        }
         // Invariant lõi: ghi nợ phải tôn trọng số dư KHẢ DỤNG (đã trừ hold), không chỉ balance.
         if (type != AccountType.SYSTEM_VAULT && available().subtract(amount).signum() < 0) {
             throw new InsufficientFundsException(accountId, available(), amount);
@@ -99,6 +103,22 @@ public class AccountAggregate extends AbstractAggregate {
         return requireActiveHold(holdId);
     }
 
+    /** Đóng băng tài khoản (kiểm soát rủi ro/gian lận). Không cho đóng băng hai lần. */
+    public void freeze(String reason) {
+        if (status == AccountStatus.FROZEN) {
+            throw new AccountStateConflictException("Tài khoản đã bị đóng băng");
+        }
+        raise(new AccountFrozen(accountId, reason, Instant.now()));
+    }
+
+    /** Mở băng tài khoản đang bị đóng băng. */
+    public void unfreeze() {
+        if (status != AccountStatus.FROZEN) {
+            throw new AccountStateConflictException("Tài khoản không bị đóng băng");
+        }
+        raise(new AccountUnfrozen(accountId, Instant.now()));
+    }
+
     private BigDecimal requireActiveHold(String holdId) {
         BigDecimal held = holds.get(holdId);
         if (held == null) {
@@ -122,6 +142,8 @@ public class AccountAggregate extends AbstractAggregate {
                     : balance.subtract(e.amount());
             case HoldPlaced e -> holds.put(e.holdId(), e.amount());
             case HoldReleased e -> holds.remove(e.holdId());
+            case AccountFrozen e -> this.status = AccountStatus.FROZEN;
+            case AccountUnfrozen e -> this.status = AccountStatus.ACTIVE;
             default -> throw new IllegalStateException(
                     "AccountAggregate không xử lý được event: " + event.eventType());
         }

@@ -92,7 +92,7 @@
 - [x] 🟡 Tài khoản tiết kiệm + tính lãi qua replay (movementType INTEREST, ADR-0012)
 - [x] 🟡 Chuyển tiền định kỳ (scheduler + standing order, ADR-0012)
 - [x] 🟡 Hold/reservation (available vs balance) + capture/release + hết hạn tự nhả (ADR-0013)
-- [ ] 🟢 Fraud detection rule-based + FraudAlertRaised + auto-freeze (chưa làm)
+- [x] 🟢 Fraud detection rule-based (velocity + giao dịch lớn) + auto-freeze + admin freeze/unfreeze (ADR-0015)
 - [ ] 🟢 Hạn mức giao dịch theo ngày (chưa làm)
 
 ## Phase 9 — Distributed (tùy chọn)

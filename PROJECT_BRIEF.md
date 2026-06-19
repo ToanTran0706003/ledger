@@ -52,6 +52,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 12 | **Advanced business**: tiết kiệm/lãi qua replay, lệnh định kỳ | `docs/adr/0012-advanced-business.md` |
 | 13 | **Hold/reservation**: available vs balance, capture/release, hết hạn tự nhả | `docs/adr/0013-hold-reservation.md` |
 | 14 | **Hash-chain** chống giả mạo event store (per-aggregate SHA-256) + endpoint verify | `docs/adr/0014-hash-chain-tamper-evidence.md` |
+| 15 | **Fraud detection** rule-based + đóng băng tài khoản (FROZEN chặn ghi nợ) | `docs/adr/0015-fraud-detection-and-freeze.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -128,8 +129,16 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   thêm test xoá-event-giữa-chuỗi + **ghi threat model trung thực** (tamper-evidence, KHÔNG tamper-
   proof: không bắt được xoá đuôi/cả stream hay giả mạo bởi người có quyền ghi → HMAC/neo ngoài là
   hướng nâng cấp) (ADR-0014).
-- Backend test: **65 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
-  standing order, hold/reservation domain + integration, hash-chain tamper-evidence).
+- Phase 8 (tiếp — Fraud detection + đóng băng): trạng thái **FROZEN** chặn ghi nợ (vẫn nhận ghi
+  có), event-sourced (sống sót snapshot + hash-chain). `FraudService` chạy **sau** mỗi withdraw/
+  transfer (best-effort, ngoài tx gốc — lỗi đóng băng được nuốt, không hỏng giao dịch đã commit):
+  luật giao dịch lớn bất thường + tần suất cao (chỉ đếm WITHDRAWAL/TRANSFER) → auto-freeze kèm lý do.
+  Admin freeze/unfreeze + `GET /admin/fraud/frozen`; cột `freeze_reason` (V13). Gated `ledger.fraud.enabled`
+  (tắt trong test). /code-review một lượt → nuốt lỗi evaluate, truyền amount (bỏ query MAX), bỏ guard
+  thừa (còn 1 query), lọc REVERSAL khỏi luật, tách `AccountStateConflictException`→409 (không nuốt lỗi
+  hạ tầng). (ADR-0015)
+- Backend test: **74 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+  standing order, hold/reservation, hash-chain, fraud detection + freeze).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy
@@ -140,7 +149,8 @@ trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (
 1. **Hoàn tất Phase 8 backend** (chiều sâu nghiệp vụ):
    - ~~Hold/reservation~~ ✅ **Đã làm + surface UI** (ADR-0013). *Còn mở rộng được:* capture sang
      tài khoản đích bất kỳ (hold-transfer), partial capture/release.
-   - **Fraud detection** rule-based (velocity, giao dịch lớn bất thường) → `FraudAlertRaised` + auto-freeze.
+   - ~~Fraud detection rule-based + auto-freeze~~ ✅ **Đã làm** (ADR-0015). *Còn mở rộng được:* thêm
+     luật (đột biến địa điểm/giờ), maker-checker chặn trước ngưỡng, surface cảnh báo lên UI.
    - **Hạn mức giao dịch/ngày** (đọc rm_transaction_history).
 2. **Surface lãi tiết kiệm rõ trên UI**: trang/nút ADMIN "tính lãi" (accrue), hoặc job lịch hằng ngày;
    hiện dòng "Lãi" trong sao kê (label đã có).

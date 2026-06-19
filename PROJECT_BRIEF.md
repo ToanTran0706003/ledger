@@ -57,8 +57,9 @@ P8 Advanced Business → P9 Distributed → P10 Polish.
 Điểm dừng an toàn: sau **P4** đã đủ ấn tượng cho phỏng vấn.
 
 ## Trạng thái hiện tại
-**Phase 0 → 7 đều ✅ (đã verify end-to-end, CI xanh).** Repo public:
-https://github.com/ToanTran0706003/ledger
+**Phase 0 → 8 (P8 làm một phần) ✅ — verify end-to-end, CI xanh hai tầng.** Repo public:
+https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README capstone.
+Đã áp dụng 3 plugin: frontend-design (typography/depth), superpowers (TDD red→green), code-review.
 - Phase 0: skeleton Spring Boot 3.5.15/Java 21, `/actuator/health` = UP.
 - Phase 1: event store JDBC, AccountAggregate+AccountOpened, projector → rm_account_balance, rebuild.
 - Phase 2: double-entry account-centric (MoneyPosted, ADR-0005), SYSTEM_VAULT GENESIS, deposit/
@@ -92,8 +93,24 @@ https://github.com/ToanTran0706003/ledger
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy
 trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (không phải JDK 26) chạy Gradle.
 
-**Tiếp theo (tùy chọn):** hoàn tất Phase 8 (hold/reservation, fraud, hạn mức ngày), surface Phase 8
-lên UI, Phase 9 — Distributed, hoặc Phase 10 — Polish & README. Xem `docs/08-todo-backlog.md`.
+## Việc đáng làm tiếp (backlog ý tưởng — cho phiên sau)
+Ưu tiên gợi ý từ trên xuống:
+1. **Hoàn tất Phase 8 backend** (chiều sâu nghiệp vụ):
+   - **Hold/reservation**: số dư khả dụng (available) vs thực (balance); đặt giữ → capture/release;
+     hết hạn tự nhả (scheduler). *Lưu ý:* đụng invariant lõi — debit phải tôn trọng available = balance − held.
+   - **Fraud detection** rule-based (velocity, giao dịch lớn bất thường) → `FraudAlertRaised` + auto-freeze.
+   - **Hạn mức giao dịch/ngày** (đọc rm_transaction_history).
+2. **Surface lãi tiết kiệm rõ trên UI**: trang/nút ADMIN "tính lãi" (accrue), hoặc job lịch hằng ngày;
+   hiện dòng "Lãi" trong sao kê (label đã có).
+3. **Nhúng ảnh/GIF demo vào README** (cần commit ảnh vào repo) — tăng thuyết phục với reviewer.
+4. **Phase 9 — Distributed**: tách read/write DB, Kafka thay outbox in-process, tách 1–2 module thành
+   microservice, Saga cho giao dịch liên service.
+5. **Hoàn thiện Phase 5/6 còn nợ**: rate limiting (login/ghi), OWASP Dependency-Check trong CI,
+   OpenTelemetry tracing, dashboard Grafana (cần sửa Docker/WSL — xem [[ledger-dev-environment]]).
+6. **Dọn nợ nhỏ**: điểm nóng SYSTEM_VAULT (shard/giảm contention) khi đo thấy nghẽn; refresh-token
+   rotation/thu hồi; RS256 thay HS256 khi lên đa service.
+
+Chi tiết lộ trình gốc: `docs/07-roadmap-and-phases.md` và `docs/08-todo-backlog.md` (đã tick tới P8).
 
 ## Tài liệu nền
 `docs/`: 00 vision · 01 architecture · 02 domain · 03 data/eventstore · 04 security ·

@@ -116,6 +116,9 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   (event-sourced), snapshot mang theo map holds. API `/accounts/{id}/holds`, read model `rm_hold`
   (V11). Làm theo TDD + một lượt /code-review (gộp 2 vế ghi sổ kép của capture về service cho
   đối xứng với money-movement; xác nhận projector "effectively-once" qua outbox nên an toàn). (ADR-0013)
+  **Đã surface lên UI** (trong màn chi tiết tài khoản): nút "Đặt giữ", thẻ Khả dụng/Đang giữ khi
+  có hold, danh sách hold với nút Thu/Nhả — verify trực quan qua preview (đặt giữ → available giảm;
+  thu → balance giảm + dòng "Thu giữ chỗ" trong sao kê; nhả → available hồi, balance giữ nguyên).
 - Backend test: **61 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation domain + integration).
 
@@ -126,8 +129,8 @@ trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (
 ## Việc đáng làm tiếp (backlog ý tưởng — cho phiên sau)
 Ưu tiên gợi ý từ trên xuống:
 1. **Hoàn tất Phase 8 backend** (chiều sâu nghiệp vụ):
-   - ~~Hold/reservation~~ ✅ **Đã làm** (ADR-0013). *Còn mở rộng được:* capture sang tài khoản
-     đích bất kỳ (hold-transfer), partial capture/release, **surface lên UI** (màn quản lý hold).
+   - ~~Hold/reservation~~ ✅ **Đã làm + surface UI** (ADR-0013). *Còn mở rộng được:* capture sang
+     tài khoản đích bất kỳ (hold-transfer), partial capture/release.
    - **Fraud detection** rule-based (velocity, giao dịch lớn bất thường) → `FraudAlertRaised` + auto-freeze.
    - **Hạn mức giao dịch/ngày** (đọc rm_transaction_history).
 2. **Surface lãi tiết kiệm rõ trên UI**: trang/nút ADMIN "tính lãi" (accrue), hoặc job lịch hằng ngày;

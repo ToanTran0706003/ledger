@@ -24,9 +24,19 @@ const MOVEMENT_LABELS: Record<string, string> = {
   GENESIS: "Khởi tạo",
   REVERSAL: "Bù trừ",
   INTEREST: "Lãi",
+  CAPTURE: "Thu giữ chỗ",
 };
 export function movementLabel(type: string): string {
   return MOVEMENT_LABELS[type] ?? type;
+}
+
+const HOLD_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: "Đang giữ",
+  RELEASED: "Đã nhả",
+  CAPTURED: "Đã thu",
+};
+export function holdStatusLabel(status: string): string {
+  return HOLD_STATUS_LABELS[status] ?? status;
 }
 
 export function accountTypeLabel(type: string): string {

@@ -1,29 +1,45 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { api, ApiError } from "../api";
-import type { Account, HistoryRow } from "../api";
-import { money, dateTime, movementLabel, shortId } from "../format";
+import type { Account, HistoryRow, HoldView } from "../api";
+import { money, dateTime, movementLabel, holdStatusLabel, shortId } from "../format";
 import { BalanceReplay } from "../BalanceReplay";
 import { AreaChart } from "../chart";
 import { Modal } from "../ui";
 import type { Notify } from "../ui";
 
-type ModalKind = null | "deposit" | "withdraw" | "transfer";
+type ModalKind = null | "deposit" | "withdraw" | "transfer" | "hold";
 
 export function AccountView({ accountId, notify, onBack }: { accountId: string; notify: Notify; onBack: () => void }) {
   const [account, setAccount] = useState<Account | null>(null);
   const [rows, setRows] = useState<HistoryRow[] | null>(null);
+  const [holds, setHolds] = useState<HoldView[]>([]);
   const [modal, setModal] = useState<ModalKind>(null);
   const [step, setStep] = useState(0);
 
   async function load() {
     try {
-      const [a, h] = await Promise.all([api.balance(accountId), api.history(accountId)]);
+      const [a, h, hd] = await Promise.all([
+        api.balance(accountId),
+        api.history(accountId),
+        api.holds(accountId),
+      ]);
       setAccount(a);
       setRows(h);
+      setHolds(hd);
       setStep(h.length); // mặc định ở hiện tại
     } catch (ex) {
       notify(ex instanceof ApiError ? ex.message : "Không tải được tài khoản.", "err");
+    }
+  }
+
+  async function holdAction(fn: () => Promise<unknown>, okMsg: string) {
+    try {
+      await fn();
+      notify(okMsg);
+      await load();
+    } catch (ex) {
+      notify(ex instanceof ApiError ? ex.message : "Thao tác thất bại.", "err");
     }
   }
 
@@ -72,8 +88,22 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
             </button>
             <button onClick={() => setModal("withdraw")}>Rút tiền</button>
             <button onClick={() => setModal("transfer")}>Chuyển tiền</button>
+            <button onClick={() => setModal("hold")}>Đặt giữ</button>
             <span className="faint num" style={{ marginLeft: "auto", alignSelf: "center" }}>{shortId(accountId)}</span>
           </div>
+
+          {account.balance - account.available > 0 && (
+            <div className="card spread">
+              <div>
+                <div className="eyebrow">Khả dụng</div>
+                <div className="num" style={{ fontSize: 20 }}>{money(account.available, currency)}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div className="eyebrow">Đang giữ</div>
+                <div className="num debit" style={{ fontSize: 20 }}>{money(account.balance - account.available, currency)}</div>
+              </div>
+            </div>
+          )}
 
           <div className="card">
             <div className="spread">
@@ -100,6 +130,51 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
               </button>
             </div>
           </div>
+
+          {holds.length > 0 && (
+            <div className="card">
+              <div className="spread">
+                <h2>Tiền đang giữ</h2>
+                <span className="tag">Hold</span>
+              </div>
+              <div className="feed">
+                {holds.map((h) => {
+                  const active = h.status === "ACTIVE";
+                  return (
+                    <div key={h.holdId} className="feed-row">
+                      <div className="meta">
+                        <span>
+                          {money(h.amount, currency)}{" "}
+                          <span className={"badge " + (active ? "" : "ok")} style={{ marginLeft: 6 }}>
+                            {holdStatusLabel(h.status)}
+                          </span>
+                        </span>
+                        <span className="when">
+                          {active ? `Hết hạn ${dateTime(h.expiresAt)}` : `Đặt ${dateTime(h.placedAt)}`}
+                        </span>
+                      </div>
+                      {active && (
+                        <div className="row" style={{ gap: 8 }}>
+                          <button
+                            className="ghost"
+                            onClick={() => holdAction(() => api.releaseHold(accountId, h.holdId), "Đã nhả khoản giữ.")}
+                          >
+                            Nhả
+                          </button>
+                          <button
+                            className="primary"
+                            onClick={() => holdAction(() => api.captureHold(accountId, h.holdId), "Đã thu khoản giữ.")}
+                          >
+                            Thu
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="card">
             <h2>Sao kê</h2>
@@ -167,8 +242,16 @@ function ActionModal({
 }) {
   const [amount, setAmount] = useState("");
   const [to, setTo] = useState("");
+  const [ttl, setTtl] = useState("3600");
   const [busy, setBusy] = useState(false);
-  const title = kind === "deposit" ? "Nạp tiền" : kind === "withdraw" ? "Rút tiền" : "Chuyển tiền";
+  const title =
+    kind === "deposit"
+      ? "Nạp tiền"
+      : kind === "withdraw"
+        ? "Rút tiền"
+        : kind === "transfer"
+          ? "Chuyển tiền"
+          : "Đặt giữ tiền";
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -178,8 +261,17 @@ function ActionModal({
     try {
       if (kind === "deposit") await api.deposit(accountId, amt);
       else if (kind === "withdraw") await api.withdraw(accountId, amt);
-      else await api.transfer(accountId, to.trim(), amt);
-      notify(kind === "deposit" ? "Đã nạp tiền." : kind === "withdraw" ? "Đã rút tiền." : "Đã chuyển tiền.");
+      else if (kind === "transfer") await api.transfer(accountId, to.trim(), amt);
+      else await api.placeHold(accountId, amt, Number(ttl));
+      notify(
+        kind === "deposit"
+          ? "Đã nạp tiền."
+          : kind === "withdraw"
+            ? "Đã rút tiền."
+            : kind === "transfer"
+              ? "Đã chuyển tiền."
+              : "Đã đặt giữ tiền.",
+      );
       await onDone();
     } catch (ex) {
       notify(ex instanceof ApiError ? ex.message : "Giao dịch thất bại.", "err");
@@ -201,6 +293,16 @@ function ActionModal({
           <label htmlFor="amt">Số tiền</label>
           <input id="amt" type="number" min="1" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         </div>
+        {kind === "hold" && (
+          <div className="field">
+            <label htmlFor="ttl">Thời hạn giữ</label>
+            <select id="ttl" value={ttl} onChange={(e) => setTtl(e.target.value)}>
+              <option value="30">30 giây (demo)</option>
+              <option value="3600">1 giờ</option>
+              <option value="86400">1 ngày</option>
+            </select>
+          </div>
+        )}
         <button className="primary" type="submit" disabled={busy}>
           {busy ? "Đang xử lý" : "Xác nhận"}
         </button>

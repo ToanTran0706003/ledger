@@ -20,6 +20,16 @@ export type StandingOrderView = {
   nextRunAt: string;
   active: boolean;
 };
+export type HoldView = {
+  holdId: string;
+  accountId: string;
+  amount: number;
+  status: string; // ACTIVE | RELEASED | CAPTURED
+  reason: string | null;
+  placedAt: string;
+  expiresAt: string;
+  releasedAt: string | null;
+};
 export type HistoryRow = {
   txId: string;
   direction: "C" | "D";
@@ -107,4 +117,15 @@ export const api = {
       body: { fromAccountId, toAccountId, amount },
       idempotent: true,
     }),
+  holds: (id: string) => request<HoldView[]>(`/accounts/${id}/holds`),
+  placeHold: (id: string, amount: number, ttlSeconds: number) =>
+    request<{ holdId: string }>(`/accounts/${id}/holds`, {
+      method: "POST",
+      body: { amount, ttlSeconds },
+      idempotent: true,
+    }),
+  releaseHold: (id: string, holdId: string) =>
+    request<void>(`/accounts/${id}/holds/${holdId}/release`, { method: "POST" }),
+  captureHold: (id: string, holdId: string) =>
+    request<{ txId: string }>(`/accounts/${id}/holds/${holdId}/capture`, { method: "POST", idempotent: true }),
 };

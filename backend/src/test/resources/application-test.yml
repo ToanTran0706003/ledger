@@ -19,6 +19,9 @@ ledger:
   holds:
     # Test tự gọi expireDue -> tắt scheduler để tất định.
     scheduler-enabled: false
+  fraud:
+    # Mặc định TẮT trong test để không nhiễu các kịch bản khác; test fraud tự bật qua @TestPropertySource.
+    enabled: false
   savings:
     # Lãi suất test cao bất thường để lãi quan sát được trong vài ms (chỉ kiểm wiring;
     # độ chính xác toán đã được InterestCalculatorTest phủ với số chính xác).

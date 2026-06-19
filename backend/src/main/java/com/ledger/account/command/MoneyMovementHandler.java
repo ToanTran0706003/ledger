@@ -4,6 +4,7 @@ import com.ledger.account.domain.AccountAggregate;
 import com.ledger.account.domain.AccountNotFoundException;
 import com.ledger.account.domain.MovementType;
 import com.ledger.account.domain.SystemAccounts;
+import com.ledger.account.fraud.FraudService;
 import com.ledger.shared.concurrency.RetryingTransactionExecutor;
 import com.ledger.shared.observability.LedgerMetrics;
 import com.ledger.shared.outbox.OutboxRelay;
@@ -25,16 +26,19 @@ public class MoneyMovementHandler {
     private final RetryingTransactionExecutor executor;
     private final OutboxRelay relay;
     private final LedgerMetrics metrics;
+    private final FraudService fraud;
 
     public MoneyMovementHandler(
             AccountRepository repository,
             RetryingTransactionExecutor executor,
             OutboxRelay relay,
-            LedgerMetrics metrics) {
+            LedgerMetrics metrics,
+            FraudService fraud) {
         this.repository = repository;
         this.executor = executor;
         this.relay = relay;
         this.metrics = metrics;
+        this.fraud = fraud;
     }
 
     public String deposit(DepositCommand command) {
@@ -43,16 +47,20 @@ public class MoneyMovementHandler {
     }
 
     public String withdraw(WithdrawCommand command) {
-        return run("withdraw", MovementType.WITHDRAWAL,
+        String txId = run("withdraw", MovementType.WITHDRAWAL,
                 () -> move(command.accountId(), SystemAccounts.VAULT_ID, command.amount(), MovementType.WITHDRAWAL));
+        fraud.evaluate(command.accountId(), command.amount()); // giám sát ghi nợ; tự đóng băng nếu nghi gian lận
+        return txId;
     }
 
     public String transfer(TransferCommand command) {
         if (command.fromAccountId().equals(command.toAccountId())) {
             throw new IllegalArgumentException("Không thể chuyển tiền cho chính tài khoản đó");
         }
-        return run("transfer", MovementType.TRANSFER,
+        String txId = run("transfer", MovementType.TRANSFER,
                 () -> move(command.fromAccountId(), command.toAccountId(), command.amount(), MovementType.TRANSFER));
+        fraud.evaluate(command.fromAccountId(), command.amount());
+        return txId;
     }
 
     // Đo độ trễ (timer) + đếm throughput theo loại giao dịch (05-performance mục 8).

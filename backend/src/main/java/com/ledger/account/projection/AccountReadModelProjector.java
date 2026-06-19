@@ -1,6 +1,8 @@
 package com.ledger.account.projection;
 
+import com.ledger.account.domain.AccountFrozen;
 import com.ledger.account.domain.AccountOpened;
+import com.ledger.account.domain.AccountUnfrozen;
 import com.ledger.account.domain.Direction;
 import com.ledger.account.domain.HoldPlaced;
 import com.ledger.account.domain.HoldReleaseReason;
@@ -33,6 +35,12 @@ public class AccountReadModelProjector implements Projector {
             case MoneyPosted e -> onMoneyPosted(e);
             case HoldPlaced e -> onHoldPlaced(e);
             case HoldReleased e -> onHoldReleased(e);
+            case AccountFrozen e -> jdbc.update(
+                    "UPDATE rm_account_balance SET status = 'FROZEN', freeze_reason = ?, updated_at = now() WHERE account_id = ?",
+                    e.reason(), e.accountId());
+            case AccountUnfrozen e -> jdbc.update(
+                    "UPDATE rm_account_balance SET status = 'ACTIVE', freeze_reason = NULL, updated_at = now() WHERE account_id = ?",
+                    e.accountId());
             default -> {
                 // event không liên quan tới read model của account -> bỏ qua
             }

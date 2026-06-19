@@ -1,6 +1,8 @@
 package com.ledger.shared.api;
 
+import com.ledger.account.domain.AccountFrozenException;
 import com.ledger.account.domain.AccountNotFoundException;
+import com.ledger.account.domain.AccountStateConflictException;
 import com.ledger.account.domain.HoldNotFoundException;
 import com.ledger.account.domain.InsufficientFundsException;
 import com.ledger.account.domain.TransactionNotFoundException;
@@ -24,6 +26,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InsufficientFundsException.class)
     public ProblemDetail handleInsufficientFunds(InsufficientFundsException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+    }
+
+    @ExceptionHandler(AccountFrozenException.class)
+    public ProblemDetail handleAccountFrozen(AccountFrozenException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+    }
+
+    @ExceptionHandler(AccountStateConflictException.class)
+    public ProblemDetail handleAccountStateConflict(AccountStateConflictException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
     }
 
     @ExceptionHandler(AccountNotFoundException.class)

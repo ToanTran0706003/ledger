@@ -91,7 +91,7 @@
 ## Phase 8 — Advanced Business
 - [x] 🟡 Tài khoản tiết kiệm + tính lãi qua replay (movementType INTEREST, ADR-0012)
 - [x] 🟡 Chuyển tiền định kỳ (scheduler + standing order, ADR-0012)
-- [ ] 🟡 Hold/reservation + hết hạn tự nhả (chưa làm)
+- [x] 🟡 Hold/reservation (available vs balance) + capture/release + hết hạn tự nhả (ADR-0013)
 - [ ] 🟢 Fraud detection rule-based + FraudAlertRaised + auto-freeze (chưa làm)
 - [ ] 🟢 Hạn mức giao dịch theo ngày (chưa làm)
 

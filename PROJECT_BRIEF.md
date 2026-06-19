@@ -50,6 +50,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 10 | **Observability & Perf**: Prometheus metrics, structured logs, benchmark | `docs/adr/0010-observability-and-performance.md` |
 | 11 | **Frontend** React+TS+Vite, design tokens anti-slop (taste-skill) | `docs/adr/0011-frontend-and-design-system.md` |
 | 12 | **Advanced business**: tiết kiệm/lãi qua replay, lệnh định kỳ | `docs/adr/0012-advanced-business.md` |
+| 13 | **Hold/reservation**: available vs balance, capture/release, hết hạn tự nhả | `docs/adr/0013-hold-reservation.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -108,7 +109,15 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   **Đã surface lên UI**: mở tài khoản Tiết kiệm (chọn loại), màn "Định kỳ" tạo/liệt kê lệnh —
   scheduler tự chuyển tiền (đã verify trực quan). Read model thêm cột account_type (migration V10).
   Frontend giờ **6 màn** (thêm Định kỳ).
-- Backend test: **47 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest, standing order).
+- Phase 8 (tiếp — Hold/Reservation): tách số dư **khả dụng (available) vs thực (balance)**;
+  `available = balance − Σ(hold)`. Invariant lõi đổi: `debit` chặn theo available (tài khoản
+  chưa có hold thì available == balance nên nạp/rút/chuyển cũ không đổi). Đặt giữ → capture
+  (ghi sổ kép về vault) / release; scheduler tự nhả hold hết hạn. Hold là trạng thái aggregate
+  (event-sourced), snapshot mang theo map holds. API `/accounts/{id}/holds`, read model `rm_hold`
+  (V11). Làm theo TDD + một lượt /code-review (gộp 2 vế ghi sổ kép của capture về service cho
+  đối xứng với money-movement; xác nhận projector "effectively-once" qua outbox nên an toàn). (ADR-0013)
+- Backend test: **61 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+  standing order, hold/reservation domain + integration).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy
@@ -117,8 +126,8 @@ trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (
 ## Việc đáng làm tiếp (backlog ý tưởng — cho phiên sau)
 Ưu tiên gợi ý từ trên xuống:
 1. **Hoàn tất Phase 8 backend** (chiều sâu nghiệp vụ):
-   - **Hold/reservation**: số dư khả dụng (available) vs thực (balance); đặt giữ → capture/release;
-     hết hạn tự nhả (scheduler). *Lưu ý:* đụng invariant lõi — debit phải tôn trọng available = balance − held.
+   - ~~Hold/reservation~~ ✅ **Đã làm** (ADR-0013). *Còn mở rộng được:* capture sang tài khoản
+     đích bất kỳ (hold-transfer), partial capture/release, **surface lên UI** (màn quản lý hold).
    - **Fraud detection** rule-based (velocity, giao dịch lớn bất thường) → `FraudAlertRaised` + auto-freeze.
    - **Hạn mức giao dịch/ngày** (đọc rm_transaction_history).
 2. **Surface lãi tiết kiệm rõ trên UI**: trang/nút ADMIN "tính lãi" (accrue), hoặc job lịch hằng ngày;

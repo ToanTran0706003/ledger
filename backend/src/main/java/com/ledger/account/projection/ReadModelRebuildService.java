@@ -29,6 +29,7 @@ public class ReadModelRebuildService {
     public void rebuild() {
         jdbc.update("TRUNCATE TABLE rm_transaction_history RESTART IDENTITY");
         jdbc.update("TRUNCATE TABLE rm_account_balance");
+        jdbc.update("TRUNCATE TABLE rm_hold");
 
         List<DomainEvent> allEvents = eventStore.loadAll();
         for (DomainEvent event : allEvents) {

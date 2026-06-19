@@ -2,6 +2,9 @@ package com.ledger.account.projection;
 
 import com.ledger.account.domain.AccountOpened;
 import com.ledger.account.domain.Direction;
+import com.ledger.account.domain.HoldPlaced;
+import com.ledger.account.domain.HoldReleaseReason;
+import com.ledger.account.domain.HoldReleased;
 import com.ledger.account.domain.MoneyPosted;
 import com.ledger.shared.domain.DomainEvent;
 import com.ledger.shared.projection.Projector;
@@ -28,6 +31,8 @@ public class AccountReadModelProjector implements Projector {
         switch (event) {
             case AccountOpened e -> onAccountOpened(e);
             case MoneyPosted e -> onMoneyPosted(e);
+            case HoldPlaced e -> onHoldPlaced(e);
+            case HoldReleased e -> onHoldReleased(e);
             default -> {
                 // event không liên quan tới read model của account -> bỏ qua
             }
@@ -71,5 +76,35 @@ public class AccountReadModelProjector implements Projector {
                 balanceAfter,
                 e.movementType().name(),
                 java.sql.Timestamp.from(e.postedAt()));
+    }
+
+    private void onHoldPlaced(HoldPlaced e) {
+        // Giữ chỗ: available giảm, balance không đổi.
+        jdbc.update(
+                "UPDATE rm_account_balance SET available = available - ?, updated_at = now() WHERE account_id = ?",
+                e.amount(), e.accountId());
+        jdbc.update(
+                """
+                INSERT INTO rm_hold (hold_id, account_id, amount, status, placed_at, expires_at)
+                VALUES (?, ?, ?, 'ACTIVE', ?, ?)
+                ON CONFLICT (hold_id) DO NOTHING
+                """,
+                e.holdId(),
+                e.accountId(),
+                e.amount(),
+                java.sql.Timestamp.from(e.placedAt()),
+                java.sql.Timestamp.from(e.expiresAt()));
+    }
+
+    private void onHoldReleased(HoldReleased e) {
+        // Nhả chỗ: trả lại available. Nếu là CAPTURED, ngay sau đó MoneyPosted(DEBIT) sẽ trừ
+        // cả balance lẫn available -> available ròng không đổi (tiền vốn đã không khả dụng).
+        jdbc.update(
+                "UPDATE rm_account_balance SET available = available + ?, updated_at = now() WHERE account_id = ?",
+                e.amount(), e.accountId());
+        String status = e.reason() == HoldReleaseReason.CAPTURED ? "CAPTURED" : "RELEASED";
+        jdbc.update(
+                "UPDATE rm_hold SET status = ?, reason = ?, released_at = ? WHERE hold_id = ?",
+                status, e.reason().name(), java.sql.Timestamp.from(e.releasedAt()), e.holdId());
     }
 }

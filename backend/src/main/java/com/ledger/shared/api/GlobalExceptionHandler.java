@@ -1,6 +1,7 @@
 package com.ledger.shared.api;
 
 import com.ledger.account.domain.AccountNotFoundException;
+import com.ledger.account.domain.HoldNotFoundException;
 import com.ledger.account.domain.InsufficientFundsException;
 import com.ledger.account.domain.TransactionNotFoundException;
 import com.ledger.iam.InvalidCredentialsException;
@@ -27,6 +28,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountNotFoundException.class)
     public ProblemDetail handleAccountNotFound(AccountNotFoundException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(HoldNotFoundException.class)
+    public ProblemDetail handleHoldNotFound(HoldNotFoundException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
 

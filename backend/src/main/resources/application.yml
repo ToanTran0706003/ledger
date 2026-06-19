@@ -49,6 +49,10 @@ ledger:
     # Scheduler chạy lệnh chuyển định kỳ đến hạn. Tắt trong test để tất định.
     scheduler-enabled: true
     poll-interval-ms: 5000
+  holds:
+    # Scheduler tự nhả hold đã hết hạn. Tắt trong test để tất định.
+    scheduler-enabled: true
+    poll-interval-ms: 5000
   security:
     jwt:
       # HS256: secret tối thiểu 32 byte. ĐỔI trong production (qua biến môi trường).

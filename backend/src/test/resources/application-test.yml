@@ -16,6 +16,9 @@ ledger:
   standing-orders:
     # Test tự gọi runDue -> tắt scheduler để tất định.
     scheduler-enabled: false
+  holds:
+    # Test tự gọi expireDue -> tắt scheduler để tất định.
+    scheduler-enabled: false
   savings:
     # Lãi suất test cao bất thường để lãi quan sát được trong vài ms (chỉ kiểm wiring;
     # độ chính xác toán đã được InterestCalculatorTest phủ với số chính xác).

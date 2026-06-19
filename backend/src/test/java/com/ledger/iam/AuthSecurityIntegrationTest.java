@@ -99,9 +99,20 @@ class AuthSecurityIntegrationTest {
     }
 
     @Test
-    void customer_cannot_access_audit_endpoint() throws Exception {
+    void customer_can_read_integrity() throws Exception {
+        // Integrity là chỉ số minh bạch -> mọi user đã đăng nhập xem được.
         String token = registerAndGetToken("alice");
         mvc.perform(get("/audit/integrity").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void customer_cannot_reverse_transaction() throws Exception {
+        // Reverse chỉ dành cho ADMIN -> CUSTOMER bị từ chối (403) ngay ở tầng security.
+        String token = registerAndGetToken("alice");
+        mvc.perform(post("/transactions/some-tx/reverse")
+                        .header("Authorization", "Bearer " + token)
+                        .header("Idempotency-Key", "k-1"))
                 .andExpect(status().isForbidden());
     }
 

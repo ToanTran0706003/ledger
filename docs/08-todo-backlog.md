@@ -59,7 +59,7 @@
 - [x] 🔴 Time-travel: `GET /accounts/{id}/balance?asOf=...`
 - [x] 🔴 ReverseTransaction (bút toán bù) + test giữ nguyên lịch sử
 - [x] 🟡 Audit metadata (correlationId) trên mọi event — userId/ip để Phase 5 (auth)
-- [ ] 🟢 Hash chain + endpoint verify chuỗi toàn vẹn (chưa làm — tùy chọn nâng cao)
+- [x] 🟢 Hash chain (per-aggregate SHA-256, metadata trong hash) + `GET /audit/hash-chain` (ADR-0014)
 
 ## Phase 5 — Security & Identity
 - [x] 🔴 Module IAM: đăng ký/đăng nhập, mật khẩu BCrypt (ADR-0009)

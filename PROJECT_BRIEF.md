@@ -51,6 +51,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 11 | **Frontend** React+TS+Vite, design tokens anti-slop (taste-skill) | `docs/adr/0011-frontend-and-design-system.md` |
 | 12 | **Advanced business**: tiết kiệm/lãi qua replay, lệnh định kỳ | `docs/adr/0012-advanced-business.md` |
 | 13 | **Hold/reservation**: available vs balance, capture/release, hết hạn tự nhả | `docs/adr/0013-hold-reservation.md` |
+| 14 | **Hash-chain** chống giả mạo event store (per-aggregate SHA-256) + endpoint verify | `docs/adr/0014-hash-chain-tamper-evidence.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -119,8 +120,16 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   **Đã surface lên UI** (trong màn chi tiết tài khoản): nút "Đặt giữ", thẻ Khả dụng/Đang giữ khi
   có hold, danh sách hold với nút Thu/Nhả — verify trực quan qua preview (đặt giữ → available giảm;
   thu → balance giảm + dòng "Thu giữ chỗ" trong sao kê; nhả → available hồi, balance giữ nguyên).
-- Backend test: **61 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
-  standing order, hold/reservation domain + integration).
+- Phase 4 (tiếp — Hash-chain): event store giờ **chống giả mạo**. Mỗi event mang
+  `hash = SHA-256(prev_hash + nội dung + metadata)`, nối chuỗi **theo từng aggregate** (giữ ghi
+  song song; không khoá toàn cục). Tính bằng SQL trên canonical jsonb (write/verify trùng khít,
+  `sha256` built-in — không cần pgcrypto). `GET /audit/hash-chain` (ADMIN/AUDITOR) tái tính + kiểm
+  liên kết. Migration V12 backfill event cũ. /code-review một lượt → **đưa metadata vào hash** +
+  thêm test xoá-event-giữa-chuỗi + **ghi threat model trung thực** (tamper-evidence, KHÔNG tamper-
+  proof: không bắt được xoá đuôi/cả stream hay giả mạo bởi người có quyền ghi → HMAC/neo ngoài là
+  hướng nâng cấp) (ADR-0014).
+- Backend test: **65 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+  standing order, hold/reservation domain + integration, hash-chain tamper-evidence).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy

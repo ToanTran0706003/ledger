@@ -3,6 +3,27 @@
 > File này là bối cảnh nền cho **mọi phiên làm việc** (Claude Code hoặc người mới vào dự
 > án). Đọc file này trước, rồi đọc `docs/`. Cập nhật khi có quyết định lớn thay đổi.
 
+## ⚡ Bắt đầu phiên mới — GROUND vào repo trước khi làm
+> Đừng tin tóm tắt nghe-kể từ phiên trước. Tự kiểm chứng repo, rồi mới tóm tắt trạng thái
+> THẬT (có dẫn chứng) và đề xuất việc. Các bước:
+> 1. Đọc hết file này + `CLAUDE.md` (gốc repo — tuân theo guideline đó).
+> 2. `git -C C:\Users\HQsoft\Desktop\Ledger log --oneline -15` và `git status`.
+> 3. Xem `docs/08-todo-backlog.md` (mục đã `[x]`); liệt kê `backend/src/main/java/com/ledger`
+>    và `frontend/src` để nắm cấu trúc thật. (Tùy chọn) chạy test để xác nhận xanh.
+> 4. Tóm tắt trạng thái thật + còn nợ gì → rồi đề xuất. KHÔNG lặp lại tóm tắt suông.
+>
+> **Môi trường máy (quirks, dễ vấp):**
+> - Có JDK 26 trên PATH nhưng PHẢI dùng JDK 21: set
+>   `$env:JAVA_HOME='C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot'` trước `gradlew`.
+> - Docker/WSL hỏng → KHÔNG dùng docker-compose/Testcontainers. Dùng **PostgreSQL 18 cài sẵn**:
+>   `localhost:5432`, DB+role `ledger`/`ledger` (superuser `postgres` / `123@123a` nếu cần tạo lại).
+> - `gh` đã đăng nhập `ToanTran0706003`. Node có sẵn. Backend: `cd backend; .\gradlew.bat bootRun`
+>   (cổng 8080). Frontend: `cd frontend; npm run dev` (cổng 5173). Preview MCP: `C:\.claude\launch.json`.
+>
+> **Quy trình mỗi phần việc:** (TDD red→green khi hợp lý) → verify (test, đôi khi chạy app +
+> chụp màn qua preview) → `/code-review` trên diff, sửa phát hiện thật → cập nhật ADR +
+> PROJECT_BRIEF + tick `docs/08` → commit nhiều commit chi tiết (kèm `Co-Authored-By`) → push → CI xanh.
+
 ## Về người phát triển
 - Web developer ~1 năm kinh nghiệm **C#/.NET**, đang chuyển sang **Java** để làm dự án
   portfolio gây ấn tượng với nhà tuyển dụng (đặc biệt **fintech**).

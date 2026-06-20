@@ -58,6 +58,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 18 | **Hardening**: rate limiting (token-bucket/IP) + OWASP SCA (CI lịch); OTel hoãn P9 | `docs/adr/0018-hardening-rate-limit-sca-tracing.md` |
 | 19 | **Đa tiền tệ + FX** (P9): per-currency vault + integrity, FX bắc cầu vault, tỉ giá cấu hình | `docs/adr/0019-multi-currency-and-fx.md` |
 | 20 | **Maker-checker** (four-eyes): giao dịch vượt ngưỡng chờ ADMIN khác duyệt | `docs/adr/0020-maker-checker.md` |
+| 21 | **Rà soát bảo mật + gia cố**: chống duyệt-đôi, secrets prod fail-fast, CORS/actuator/CSP, validation, login constant-time | `docs/adr/0021-security-audit-hardening.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -183,9 +184,16 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   `/admin/approvals` (duyệt/từ chối). UI: màn chuyển báo "chờ duyệt" + mục "Giao dịch chờ duyệt" ở
   Quản trị. Gated config; migration V14. Verify integration + HTTP end-to-end. Khép kín bộ kiểm soát
   rủi ro (hold + fraud + hạn mức + maker-checker). (ADR-0020)
-- Backend test: **92 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+- **Rà soát bảo mật toàn dự án + đợt gia cố (ADR-0021):** không có lỗ hổng catastrophic (không
+  auth-bypass/IDOR/SQLi). Sửa: chống duyệt-đôi maker-checker (chuyển trạng thái nguyên tử — lỗ hổng
+  mất tiền); secrets prod fail-fast (`ProdSecurityGuard`); CORS/actuator theo profile; CSP +
+  `server.error.*` ẩn; `amount @Digits` (chặn overflow/scale → 400); login constant-time (chống
+  enumeration timing). nimbus 9.37.4 đã vá CVE-2025-53864. Hoãn: refresh rotation, token HttpOnly,
+  HMAC hash-chain, 2FA.
+- Backend test: **96 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed,
-  rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity, maker-checker).
+  rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity,
+  maker-checker + chống duyệt-đôi, validation số tiền).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy

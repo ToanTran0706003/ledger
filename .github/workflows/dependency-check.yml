@@ -1,0 +1,35 @@
+name: Dependency Check (OWASP SCA)
+
+# Quét lỗ hổng đã biết (CVE) của thư viện phụ thuộc. Chạy theo LỊCH (không phải mỗi push) để
+# không làm chậm CI bắt buộc — SCA tốn thời gian (tải NVD). Cần secret NVD_API_KEY để nhanh &
+# tránh rate-limit (đăng ký free tại https://nvd.nist.gov/developers/request-an-api-key).
+on:
+  schedule:
+    - cron: "0 3 * * 1" # 03:00 UTC mỗi thứ Hai
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  security-events: write # upload SARIF lên tab Security > Code scanning
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: ledger
+          path: .
+          format: SARIF
+          args: >-
+            --failOnCVSS 7
+            --nvdApiKey ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload SARIF result
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/dependency-check-report.sarif

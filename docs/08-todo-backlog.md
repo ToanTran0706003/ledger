@@ -66,15 +66,16 @@
 - [x] 🔴 JWT access + refresh, xác thực qua Spring Security Resource Server
 - [x] 🔴 Ownership check mọi truy cập accountId (AccessControl)
 - [x] 🔴 Vai trò CUSTOMER/ADMIN/AUDITOR + phân quyền endpoint
-- [x] 🟡 Security headers (HSTS) + CORS (rate limiting để sau)
-- [ ] 🟡 OWASP Dependency-Check trong CI (để sau — chậm/cần NVD key)
+- [x] 🟡 Security headers (HSTS) + CORS
+- [x] 🟡 Rate limiting (token-bucket theo IP: auth chống dò mật khẩu + write) (ADR-0018)
+- [x] 🟡 OWASP Dependency-Check trong CI (workflow lên lịch riêng + NVD key) (ADR-0018)
 - [ ] 🟢 Maker-checker cho giao dịch vượt ngưỡng
 - [ ] 🟢 2FA/TOTP cho thao tác nhạy cảm
 
 ## Phase 6 — Observability & Performance
 - [x] 🔴 Micrometer + endpoint Prometheus (`/actuator/prometheus`)
 - [x] 🔴 Structured logging (JSON ECS, profile prod) + correlationId/userId qua MDC
-- [ ] 🟡 Tracing OpenTelemetry (chưa làm — để sau)
+- [ ] 🟡 Tracing OpenTelemetry (hoãn sang Phase 9 — tracing trả công khi đa service; ADR-0018)
 - [ ] 🟡 Dashboard Grafana (chưa làm — Docker hỏng; metric đã sẵn để scrape)
 - [x] 🔴 Load test (k6 script + baseline đo thật) → `docs/benchmarks/`
 - [x] 🟡 Tối ưu index (idx_events_txid cho reversal); snapshot N cấu hình được (ADR-0010)

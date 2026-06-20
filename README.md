@@ -9,8 +9,8 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green)]()
 [![React](https://img.shields.io/badge/React-TypeScript-blue)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Event_Sourcing_%2B_CQRS-8a2be2)]()
-[![Tests](https://img.shields.io/badge/tests-79_passing-brightgreen)]()
-[![ADRs](https://img.shields.io/badge/ADRs-17-informational)]()
+[![Tests](https://img.shields.io/badge/tests-82_passing-brightgreen)]()
+[![ADRs](https://img.shields.io/badge/ADRs-18-informational)]()
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
 
 Mọi thay đổi tiền là một **event bất biến** (không bao giờ UPDATE/DELETE). Số dư được
@@ -71,7 +71,7 @@ Mỗi lần di chuyển tiền sinh **hai posting** (một ghi nợ, một ghi c
 | **Transactional outbox** | Event + outbox ghi cùng transaction → không mất projection; relay là lưới an toàn phục hồi sau crash. |
 | **Time & audit** | Snapshot (load ≈ hằng số), **time-travel** số dư theo thời điểm, **reversal** bằng bút toán bù (không xóa lịch sử), metadata `correlationId`/`userId` trên mọi event. |
 | **Audit chống giả mạo** | **Hash-chain** SHA-256 theo từng aggregate (mỗi event nối hash event trước + cả metadata). `GET /audit/hash-chain` phát hiện sửa-tại-chỗ và xoá-event-giữa-chuỗi. Threat model trung thực: tamper-*evidence*, không phải tamper-proof (ADR-0014). |
-| **Bảo mật** | JWT (access + refresh), băm BCrypt, ownership check (không truy cập chéo tài khoản), vai trò CUSTOMER/ADMIN/AUDITOR. |
+| **Bảo mật** | JWT (access + refresh), băm BCrypt, ownership check (không truy cập chéo tài khoản), vai trò CUSTOMER/ADMIN/AUDITOR. **Rate limiting** token-bucket theo IP (chống dò mật khẩu) → 429; **OWASP Dependency-Check** (SCA) chạy CI theo lịch (ADR-0018). |
 | **Hold / reservation** | Tách **số dư khả dụng vs thực** (`available = balance − Σ holds`); đặt giữ → thu (capture, ghi sổ kép) / nhả; scheduler tự nhả khi hết hạn. Ghi nợ tôn trọng `available`. |
 | **Phát hiện gian lận** | Luật rule-based sau mỗi ghi nợ (giao dịch lớn bất thường, tần suất cao) → **tự đóng băng**; tài khoản **FROZEN** chặn ghi nợ (vẫn nhận ghi có). Admin freeze/unfreeze. Best-effort, không làm hỏng giao dịch đã commit (ADR-0015). |
 | **Hạn mức ngày** | Chặn **cứng** tổng ghi nợ/ngày mỗi tài khoản, kiểm tra **trong transaction** từ event store; **chính xác cả khi đồng thời** nhờ optimistic concurrency serialize ghi nợ theo aggregate (ADR-0016). |
@@ -113,9 +113,9 @@ tài khoản. Metrics tại `/actuator/prometheus`.
 
 ## Kiểm thử
 
-79 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi), **integration**
+82 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi, rate-limit), **integration**
 trên PostgreSQL thật (vòng đời ES/CQRS, rebuild, snapshot, time-travel, reversal, hold, hash-chain,
-fraud/freeze, hạn mức ngày, admin seed), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
+fraud/freeze, hạn mức ngày, admin seed, rate limiting), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
 thread, không double-spend), **security** (MockMvc — 401/403/ownership/vai trò), **idempotency**,
 **outbox durability**. CI (GitHub Actions) build + test backend (Postgres service) và build frontend
 trên mỗi push.
@@ -158,6 +158,7 @@ interest, standingorder, **hold**, **fraud**) · `audit` (integrity, hash-chain 
 | [0015](./docs/adr/0015-fraud-detection-and-freeze.md) | Fraud detection rule-based + đóng băng |
 | [0016](./docs/adr/0016-daily-transaction-limit.md) | Hạn mức giao dịch theo ngày |
 | [0017](./docs/adr/0017-admin-console-and-bootstrap.md) | Console Quản trị/Kiểm toán + admin bootstrap |
+| [0018](./docs/adr/0018-hardening-rate-limit-sca-tracing.md) | Hardening: rate limiting + OWASP SCA (OTel hoãn P9) |
 
 ## Tech stack
 

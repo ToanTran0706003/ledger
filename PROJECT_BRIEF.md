@@ -55,6 +55,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 15 | **Fraud detection** rule-based + đóng băng tài khoản (FROZEN chặn ghi nợ) | `docs/adr/0015-fraud-detection-and-freeze.md` |
 | 16 | **Hạn mức ngày**: chặn cứng tổng ghi nợ/ngày, kiểm tra trong-transaction từ event store | `docs/adr/0016-daily-transaction-limit.md` |
 | 17 | **Console Quản trị/Kiểm toán** (UI hash-chain verify + đóng băng) + admin bootstrap | `docs/adr/0017-admin-console-and-bootstrap.md` |
+| 18 | **Hardening**: rate limiting (token-bucket/IP) + OWASP SCA (CI lịch); OTel hoãn P9 | `docs/adr/0018-hardening-rate-limit-sca-tracing.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -155,8 +156,14 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   TẮT ở prod, mật khẩu qua `LEDGER_ADMIN_PASSWORD`). /code-review → robust giải mã JWT (padding +
   TextDecoder), an toàn-mặc-định ở prod + cảnh báo log, ADR-0017. Đã verify end-to-end qua preview.
   Frontend giờ **7 màn** (thêm Quản trị).
-- Backend test: **79 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
-  standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed).
+- Hardening (dọn nợ Phase 5/6): **rate limiting** token-bucket theo IP (`getRemoteAddr`, KHÔNG tin
+  X-Forwarded-For) — xô auth chặt chống dò mật khẩu + xô write rộng hơn, vượt → 429; gated, một-node
+  (Redis cho đa node). **OWASP Dependency-Check** chạy workflow **lên lịch riêng** (tách job build-test
+  bắt buộc; cần secret NVD_API_KEY). **OpenTelemetry hoãn sang Phase 9** (tracing trả công khi đa
+  service; monolith đã có correlationId + metrics). /code-review → bỏ tin X-Forwarded-For (chống giả
+  mạo vượt limiter) + backstop map. (ADR-0018)
+- Backend test: **82 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+  standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed, rate limiting).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy
@@ -175,8 +182,8 @@ trên DB `ledger_test`; CI thì dùng Postgres service container. Cần JDK 21 (
 3. **Nhúng ảnh/GIF demo vào README** (cần commit ảnh vào repo) — tăng thuyết phục với reviewer.
 4. **Phase 9 — Distributed**: tách read/write DB, Kafka thay outbox in-process, tách 1–2 module thành
    microservice, Saga cho giao dịch liên service.
-5. **Hoàn thiện Phase 5/6 còn nợ**: rate limiting (login/ghi), OWASP Dependency-Check trong CI,
-   OpenTelemetry tracing, dashboard Grafana (cần sửa Docker/WSL — xem [[ledger-dev-environment]]).
+5. **Hoàn thiện Phase 5/6 còn nợ**: ~~rate limiting~~ ✅ + ~~OWASP SCA~~ ✅ (ADR-0018); còn
+   OpenTelemetry (hoãn P9) + dashboard Grafana (cần sửa Docker/WSL — xem [[ledger-dev-environment]]).
 6. **Dọn nợ nhỏ**: điểm nóng SYSTEM_VAULT (shard/giảm contention) khi đo thấy nghẽn; refresh-token
    rotation/thu hồi; RS256 thay HS256 khi lên đa service.
 

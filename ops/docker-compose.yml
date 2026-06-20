@@ -10,14 +10,16 @@ services:
       - "5432:5432"
     volumes:
       - ledger-pgdata:/var/lib/postgresql/data
+      # Tạo thêm DB ledger_audit cho audit-service (chạy lần khởi tạo đầu).
+      - ./init-audit-db.sql:/docker-entrypoint-initdb.d/10-init-audit-db.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ledger -d ledger"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # Kafka event backbone (Phase 9, ADR-0023) — KRaft single-node, không cần Zookeeper.
-  # Bật tích hợp ở app bằng: ledger.kafka.enabled=true (mặc định tắt -> projection in-process).
+  # Kafka event backbone (ADR-0023) — KRaft single-node. Hai listener: nội bộ container (kafka:29092)
+  # và host (localhost:9092) để vừa chạy compose vừa nối từ máy.
   kafka:
     image: apache/kafka:3.9.0
     container_name: ledger-kafka
@@ -26,13 +28,49 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: CONTROLLER://localhost:9093,PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  # Service chính (event-sourced ledger). Bật Kafka để publish event cho audit-service.
+  ledger-core:
+    build: ../backend
+    container_name: ledger-core
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ledger
+      SPRING_DATASOURCE_USERNAME: ledger
+      SPRING_DATASOURCE_PASSWORD: ledger
+      LEDGER_KAFKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    ports:
+      - "8080:8080"
+
+  # Microservice kiểm toán độc lập (ADR-0024): consume ledger.events, tự dựng read model + integrity.
+  audit-service:
+    build: ../services/audit-service
+    container_name: ledger-audit-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      AUDIT_DB_URL: jdbc:postgresql://postgres:5432/ledger_audit
+      AUDIT_DB_USER: ledger
+      AUDIT_DB_PASSWORD: ledger
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    ports:
+      - "8081:8081"
 
 volumes:
   ledger-pgdata:

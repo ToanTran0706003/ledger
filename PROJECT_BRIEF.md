@@ -199,8 +199,10 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   V16); **2FA/TOTP** RFC 6238 tự cài (V17, màn "Bảo mật", login bắt buộc mã khi bật). Cố ý KHÔNG làm:
   cookie HttpOnly (đổi XSS↔CSRF, thiết kế hiện tại hợp lý) và register enumeration (đánh đổi UX) — nêu rõ ở ADR.
 - **Phase 9 (Docker chạy lại):** **read/write datasource split** (ADR-0022) + **Kafka event backbone**
-  (ADR-0023: outbox → Kafka → consumer, gated config, KRaft trong compose, test qua broker nhúng).
-  Còn lại: tách microservice + Saga.
+  (ADR-0023) + **tách `audit` thành microservice** (ADR-0024: `services/audit-service/` consume Kafka,
+  read model + integrity riêng; compose đa-service postgres+kafka+core+audit; **event replay** rehydrate
+  consumer mới; verify liên service end-to-end: deposit qua core → Kafka → audit, tổng = seed). Codex
+  dựng greenfield audit-service trong worktree song song. Còn lại: **Saga**.
 - Backend test: **106 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain HMAC, fraud detection + freeze, hạn mức ngày, admin seed,
   rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity,

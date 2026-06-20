@@ -1,0 +1,33 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${AUDIT_DB_URL:jdbc:postgresql://localhost:5432/ledger_audit}
+    username: ${AUDIT_DB_USER:ledger}
+    password: ${AUDIT_DB_PASSWORD:ledger}
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: audit-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+ledger:
+  audit:
+    seed-amount: 1000000000000.00
+    topic: ledger.events
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

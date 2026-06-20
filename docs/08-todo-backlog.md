@@ -99,8 +99,8 @@
 ## Phase 9 — Distributed (tùy chọn)
 - [x] 🟢 Tách read/write datasource (CQRS): đọc kiểm toán/báo cáo → read pool, prod trỏ replica (ADR-0022)
 - [x] 🟢 Kafka làm event backbone (outbox → Kafka → consumer; gated config, Kafka KRaft trong compose) (ADR-0023)
-- [ ] 🟢 Tách 1–2 module thành microservice (Docker đã chạy lại — làm tiếp)
-- [ ] 🟢 Saga cho transfer liên service + bù trừ khi lỗi (sau khi tách service)
+- [x] 🟢 Tách `audit` thành microservice độc lập (consume Kafka, read model + integrity riêng; compose đa-service; event replay rehydrate) (ADR-0024)
+- [ ] 🟢 Saga cho transfer liên service + bù trừ khi lỗi (làm tiếp — đã có nền 2 service + Kafka)
 - [x] 🟢 Đa tiền tệ + quy đổi tỷ giá (per-currency vault + integrity, FX bắc cầu vault, tỉ giá cấu hình) (ADR-0019)
 
 ## Phase 10 — Polish & Storytelling

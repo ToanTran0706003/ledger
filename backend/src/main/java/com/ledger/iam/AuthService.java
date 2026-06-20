@@ -1,6 +1,8 @@
 package com.ledger.iam;
 
 import com.ledger.iam.api.AuthDtos.TokenResponse;
+import com.ledger.iam.domain.RefreshTokenRecord;
+import com.ledger.iam.domain.RefreshTokenRepository;
 import com.ledger.iam.domain.Role;
 import com.ledger.iam.domain.UserAccount;
 import com.ledger.iam.domain.UserRepository;
@@ -16,14 +18,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository users;
+    private final RefreshTokenRepository refreshTokens;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwt;
     // Hash giả để băm "tốn thời gian" ngay cả khi username không tồn tại -> san bằng thời gian phản
     // hồi, chống liệt kê username qua timing (audit #5). Tính một lần lúc khởi động.
     private final String dummyHash;
 
-    public AuthService(UserRepository users, PasswordEncoder passwordEncoder, JwtService jwt) {
+    public AuthService(
+            UserRepository users,
+            RefreshTokenRepository refreshTokens,
+            PasswordEncoder passwordEncoder,
+            JwtService jwt) {
         this.users = users;
+        this.refreshTokens = refreshTokens;
         this.passwordEncoder = passwordEncoder;
         this.jwt = jwt;
         this.dummyHash = passwordEncoder.encode("ledger-no-such-user-placeholder");
@@ -40,7 +48,7 @@ public class AuthService {
         return issueTokens(user);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TokenResponse login(String username, String rawPassword) {
         UserAccount user = users.findByUsername(username).orElse(null);
         // Luôn chạy BCrypt (với hash thật hoặc hash giả) để thời gian phản hồi không tiết lộ
@@ -53,7 +61,7 @@ public class AuthService {
         return issueTokens(user);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TokenResponse refresh(String refreshToken) {
         Jwt decoded;
         try {
@@ -61,12 +69,26 @@ public class AuthService {
         } catch (RuntimeException e) {
             throw new InvalidCredentialsException();
         }
+        // Rotation single-use: tiêu thụ jti cũ một cách nguyên tử. Không còn trong whitelist (đã dùng,
+        // đã thu hồi khi logout, hoặc bị giả mạo) -> từ chối. Mỗi refresh cấp một jti mới.
+        String jtiClaim = decoded.getId();
+        if (jtiClaim == null || refreshTokens.consume(UUID.fromString(jtiClaim)) == 0) {
+            throw new InvalidCredentialsException();
+        }
         UserAccount user = users.findById(UUID.fromString(decoded.getSubject()))
                 .orElseThrow(InvalidCredentialsException::new);
         return issueTokens(user);
     }
 
+    /** Thu hồi mọi refresh token của user (logout) -> các refresh token cũ hết hiệu lực ngay. */
+    @Transactional
+    public void logout(UUID userId) {
+        refreshTokens.deleteByUserId(userId);
+    }
+
     private TokenResponse issueTokens(UserAccount user) {
-        return new TokenResponse(jwt.issueAccessToken(user), jwt.issueRefreshToken(user), "Bearer");
+        UUID jti = UUID.randomUUID();
+        refreshTokens.save(new RefreshTokenRecord(jti, user.getId(), jwt.refreshExpiry(), Instant.now()));
+        return new TokenResponse(jwt.issueAccessToken(user), jwt.issueRefreshToken(user, jti), "Bearer");
     }
 }

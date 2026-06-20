@@ -4,6 +4,7 @@ import com.ledger.iam.domain.UserAccount;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -38,11 +39,16 @@ public class JwtService {
     }
 
     public String issueAccessToken(UserAccount user) {
-        return issue(user, TYPE_ACCESS, Duration.ofMinutes(accessTtlMinutes));
+        return issue(user, TYPE_ACCESS, Duration.ofMinutes(accessTtlMinutes), null);
     }
 
-    public String issueRefreshToken(UserAccount user) {
-        return issue(user, TYPE_REFRESH, Duration.ofDays(refreshTtlDays));
+    /** Phát hành refresh token gắn jti (để whitelist + rotation; xem RefreshTokenRepository). */
+    public String issueRefreshToken(UserAccount user, UUID jti) {
+        return issue(user, TYPE_REFRESH, Duration.ofDays(refreshTtlDays), jti);
+    }
+
+    public Instant refreshExpiry() {
+        return Instant.now().plus(Duration.ofDays(refreshTtlDays));
     }
 
     /** Xác thực refresh token và trả claims; ném nếu không hợp lệ/hết hạn/không phải refresh. */
@@ -54,17 +60,19 @@ public class JwtService {
         return jwt;
     }
 
-    private String issue(UserAccount user, String type, Duration ttl) {
+    private String issue(UserAccount user, String type, Duration ttl, UUID jti) {
         Instant now = Instant.now();
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+        JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
                 .subject(user.getId().toString())
                 .issuedAt(now)
                 .expiresAt(now.plus(ttl))
                 .claim("username", user.getUsername())
                 .claim("roles", List.of(user.getRole().name()))
-                .claim("typ", type)
-                .build();
+                .claim("typ", type);
+        if (jti != null) {
+            claims.id(jti.toString());
+        }
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
-        return encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+        return encoder.encode(JwtEncoderParameters.from(header, claims.build())).getTokenValue();
     }
 }

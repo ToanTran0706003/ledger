@@ -9,5 +9,6 @@ public record AccountBalanceView(
         String currency,
         BigDecimal balance,
         BigDecimal available,
-        String status) {
+        String status,
+        String freezeReason) {
 }

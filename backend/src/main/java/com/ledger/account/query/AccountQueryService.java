@@ -18,7 +18,7 @@ public class AccountQueryService {
     public List<AccountBalanceView> findByOwner(String owner) {
         return jdbc.query(
                 """
-                SELECT account_id, owner, account_type, currency, balance, available, status
+                SELECT account_id, owner, account_type, currency, balance, available, status, freeze_reason
                 FROM rm_account_balance
                 WHERE owner = ?
                 ORDER BY account_id
@@ -50,7 +50,7 @@ public class AccountQueryService {
         return jdbc
                 .query(
                         """
-                        SELECT account_id, owner, account_type, currency, balance, available, status
+                        SELECT account_id, owner, account_type, currency, balance, available, status, freeze_reason
                         FROM rm_account_balance
                         WHERE account_id = ?
                         """,
@@ -68,6 +68,7 @@ public class AccountQueryService {
                 rs.getString("currency"),
                 rs.getBigDecimal("balance"),
                 rs.getBigDecimal("available"),
-                rs.getString("status"));
+                rs.getString("status"),
+                rs.getString("freeze_reason"));
     }
 }

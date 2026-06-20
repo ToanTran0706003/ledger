@@ -17,6 +17,7 @@
   --credit: #5fc99c;          /* ghi có (+) */
   --debit: #e0a06a;           /* ghi nợ, cam đất tiết chế */
   --danger: #e0746a;
+  --frozen: #74a6d6;          /* lạnh: tài khoản bị đóng băng (tách khỏi đỏ-lỗi và màu tiền) */
 
   --radius: 12px;
   --radius-sm: 8px;
@@ -193,7 +194,29 @@ h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 4p
 .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 14px; }
 .badge.ok { background: rgba(63,185,143,0.14); color: var(--credit); border: 1px solid rgba(63,185,143,0.4); }
 .badge.err { background: rgba(224,116,106,0.14); color: var(--danger); border: 1px solid rgba(224,116,106,0.4); }
+.badge.frozen { background: rgba(116,166,214,0.14); color: var(--frozen); border: 1px solid rgba(116,166,214,0.4); }
 .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+/* Tài khoản bị đóng băng: dải thông báo lạnh, kỷ luật — chặn tiền ra cho tới khi mở băng. */
+.frozen-banner {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 16px 18px; border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(116,166,214,0.12), rgba(116,166,214,0.05));
+  border: 1px solid rgba(116,166,214,0.38);
+}
+.frozen-banner .mark {
+  flex: none; width: 34px; height: 34px; border-radius: 9px;
+  display: grid; place-items: center; font-size: 18px;
+  color: var(--frozen); background: rgba(116,166,214,0.16); border: 1px solid rgba(116,166,214,0.4);
+}
+.frozen-banner .title { font-weight: 600; color: var(--frozen); letter-spacing: 0.01em; }
+.frozen-banner .reason { color: var(--muted); font-size: 14px; margin-top: 3px; }
+.frozen-banner .note { color: var(--faint); font-size: 13px; margin-top: 6px; }
+.tile-frozen { color: var(--frozen); border-color: rgba(116,166,214,0.45); }
+.chip-frozen {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  color: var(--frozen); border: 1px solid rgba(116,166,214,0.45); background: rgba(116,166,214,0.12);
+}
 
 /* Thanh trượt time-travel */
 input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--surface-2); border: none; border-radius: 999px; padding: 0; }

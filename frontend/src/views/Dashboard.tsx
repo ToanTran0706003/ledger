@@ -98,10 +98,20 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
       ) : (
         <div className="grid-2">
           {accounts.map((a) => (
-            <button key={a.accountId} className="card account-tile" onClick={() => onOpenAccount(a.accountId)}>
+            <button
+              key={a.accountId}
+              className={"card account-tile" + (a.status === "FROZEN" ? " tile-frozen" : "")}
+              onClick={() => onOpenAccount(a.accountId)}
+            >
               <div className="spread">
                 <span className="tag">{accountTypeLabel(a.type)}</span>
-                <span className="id">{shortId(a.accountId)}</span>
+                {a.status === "FROZEN" ? (
+                  <span className="chip-frozen">
+                    <span aria-hidden="true">❄</span> Đóng băng
+                  </span>
+                ) : (
+                  <span className="id">{shortId(a.accountId)}</span>
+                )}
               </div>
               <div className="balance-hero" style={{ fontSize: 26 }}>
                 {money(a.balance, a.currency)}

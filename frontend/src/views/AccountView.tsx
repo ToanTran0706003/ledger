@@ -82,13 +82,30 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
         <>
           <BalanceReplay rows={rows} currency={currency} />
 
+          {account.status === "FROZEN" && (
+            <div className="frozen-banner" role="status">
+              <div className="mark" aria-hidden="true">❄</div>
+              <div>
+                <div className="title">Tài khoản đang bị đóng băng</div>
+                {account.freezeReason && <div className="reason">{account.freezeReason}</div>}
+                <div className="note">Tiền chỉ có thể nạp vào. Rút và chuyển tạm khoá cho tới khi mở băng.</div>
+              </div>
+            </div>
+          )}
+
           <div className="row" style={{ flexWrap: "wrap" }}>
             <button className="primary" onClick={() => setModal("deposit")}>
               Nạp tiền
             </button>
-            <button onClick={() => setModal("withdraw")}>Rút tiền</button>
-            <button onClick={() => setModal("transfer")}>Chuyển tiền</button>
-            <button onClick={() => setModal("hold")}>Đặt giữ</button>
+            <button onClick={() => setModal("withdraw")} disabled={account.status === "FROZEN"}>
+              Rút tiền
+            </button>
+            <button onClick={() => setModal("transfer")} disabled={account.status === "FROZEN"}>
+              Chuyển tiền
+            </button>
+            <button onClick={() => setModal("hold")} disabled={account.status === "FROZEN"}>
+              Đặt giữ
+            </button>
             <span className="faint num" style={{ marginLeft: "auto", alignSelf: "center" }}>{shortId(accountId)}</span>
           </div>
 

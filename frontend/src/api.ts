@@ -10,6 +10,7 @@ export type Account = {
   balance: number;
   available: number;
   status: string;
+  freezeReason: string | null;
 };
 export type StandingOrderView = {
   id: string;

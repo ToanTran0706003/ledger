@@ -1,8 +1,6 @@
 package com.ledger.shared.outbox;
 
-import com.ledger.shared.domain.DomainEvent;
-import com.ledger.shared.eventstore.EventSerde;
-import com.ledger.shared.projection.ProjectionDispatcher;
+import com.ledger.shared.kafka.EventPublisher;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +9,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Đọc các dòng outbox PENDING, dispatch tới projector, đánh dấu SENT — tất cả trong
- * cùng một transaction nên projection là "effectively-once": cập nhật read model và
- * đánh dấu SENT commit cùng nhau (ADR-0006). FOR UPDATE SKIP LOCKED cho phép nhiều
- * lần drain chạy song song mà không xử lý trùng một dòng.
+ * Đọc các dòng outbox PENDING, phát event qua {@link EventPublisher}, đánh dấu SENT — tất cả trong
+ * cùng một transaction (ADR-0006). Mặc định publisher chạy projection in-process ("effectively-once");
+ * khi bật Kafka (ADR-0023), publisher gửi lên Kafka và projection chạy ở consumer (at-least-once,
+ * idempotent). FOR UPDATE SKIP LOCKED cho phép nhiều lần drain song song không xử lý trùng dòng.
  */
 @Component
 public class OutboxRelay {
@@ -24,18 +22,12 @@ public class OutboxRelay {
 
     private final TransactionTemplate transactionTemplate;
     private final JdbcTemplate jdbc;
-    private final ProjectionDispatcher dispatcher;
-    private final EventSerde serde;
+    private final EventPublisher publisher;
 
-    public OutboxRelay(
-            TransactionTemplate transactionTemplate,
-            JdbcTemplate jdbc,
-            ProjectionDispatcher dispatcher,
-            EventSerde serde) {
+    public OutboxRelay(TransactionTemplate transactionTemplate, JdbcTemplate jdbc, EventPublisher publisher) {
         this.transactionTemplate = transactionTemplate;
         this.jdbc = jdbc;
-        this.dispatcher = dispatcher;
-        this.serde = serde;
+        this.publisher = publisher;
     }
 
     /** Xử lý hết các dòng PENDING. */
@@ -69,8 +61,7 @@ public class OutboxRelay {
                     BATCH_SIZE);
 
             for (Pending row : rows) {
-                DomainEvent event = serde.deserialize(row.eventType(), row.payload());
-                dispatcher.dispatch(event);
+                publisher.publish(row.eventType(), row.payload());
                 jdbc.update("UPDATE outbox SET status = 'SENT', sent_at = now() WHERE id = ?", row.id());
             }
             return rows.size();

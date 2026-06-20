@@ -25,6 +25,14 @@ spring:
       # để app tái tính hash khớp. Prod đặt LEDGER_HASHCHAIN_KEY.
       hashchainKey: "${LEDGER_HASHCHAIN_KEY:dev-hashchain-key-change-in-prod-0123456789abcdef}"
 
+  kafka:
+    bootstrap-servers: "${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}"
+    consumer:
+      auto-offset-reset: earliest
+    admin:
+      # Kafka tắt -> không có broker; đừng để KafkaAdmin chặn khởi động.
+      fail-fast: false
+
 management:
   endpoints:
     web:
@@ -38,6 +46,12 @@ management:
       application: ledger
 
 ledger:
+  kafka:
+    # Event backbone (ADR-0023). Mặc định TẮT -> projection in-process (effectively-once). Bật khi
+    # có Kafka chạy (ops/docker-compose.yml) -> outbox publish lên topic, consumer projection async.
+    enabled: false
+    topic: ledger.events
+    group-id: ledger-projector
   datasource:
     read:
       # CQRS read/write split (ADR-0022): đường đọc nặng (kiểm toán/báo cáo) tách sang đây. Mặc định

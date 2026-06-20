@@ -15,7 +15,9 @@
 > **Môi trường máy (quirks, dễ vấp):**
 > - Có JDK 26 trên PATH nhưng PHẢI dùng JDK 21: set
 >   `$env:JAVA_HOME='C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot'` trước `gradlew`.
-> - Docker/WSL hỏng → KHÔNG dùng docker-compose/Testcontainers. Dùng **PostgreSQL 18 cài sẵn**:
+> - **Docker đã CHẠY LẠI** (2026-06-20): WSL hỏng `REGDB_E_CLASSNOTREG` → cài lại WSL MSI 2.7.8 →
+>   `com.docker.service` + Docker Desktop → engine v29.5.3 OK (compose v5.1.4). Dùng được
+>   docker-compose/Testcontainers. Vẫn ưu tiên **PostgreSQL 18 cài sẵn** cho test nhanh:
 >   `localhost:5432`, DB+role `ledger`/`ledger` (superuser `postgres` / `123@123a` nếu cần tạo lại).
 > - `gh` đã đăng nhập `ToanTran0706003`. Node có sẵn. Backend: `cd backend; .\gradlew.bat bootRun`
 >   (cổng 8080). Frontend: `cd frontend; npm run dev` (cổng 5173). Preview MCP: `C:\.claude\launch.json`.
@@ -60,6 +62,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 20 | **Maker-checker** (four-eyes): giao dịch vượt ngưỡng chờ ADMIN khác duyệt | `docs/adr/0020-maker-checker.md` |
 | 21 | **Rà soát bảo mật + gia cố**: chống duyệt-đôi, secrets prod fail-fast, CORS/actuator/CSP, validation, login constant-time | `docs/adr/0021-security-audit-hardening.md` |
 | 22 | **Tách read/write datasource** (CQRS, P9): đọc kiểm toán/báo cáo → read pool, prod trỏ replica | `docs/adr/0022-read-write-datasource-split.md` |
+| 23 | **Kafka event backbone** (P9): outbox → Kafka → consumer (gated config, KRaft trong compose) | `docs/adr/0023-kafka-event-backbone.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -195,10 +198,14 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   (V15 whitelist); **Dependabot**; **hash-chain HMAC-SHA256** tamper-PROOF (khoá ngoài DB, pgcrypto,
   V16); **2FA/TOTP** RFC 6238 tự cài (V17, màn "Bảo mật", login bắt buộc mã khi bật). Cố ý KHÔNG làm:
   cookie HttpOnly (đổi XSS↔CSRF, thiết kế hiện tại hợp lý) và register enumeration (đánh đổi UX) — nêu rõ ở ADR.
-- Backend test: **105 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+- **Phase 9 (Docker chạy lại):** **read/write datasource split** (ADR-0022) + **Kafka event backbone**
+  (ADR-0023: outbox → Kafka → consumer, gated config, KRaft trong compose, test qua broker nhúng).
+  Còn lại: tách microservice + Saga.
+- Backend test: **106 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain HMAC, fraud detection + freeze, hạn mức ngày, admin seed,
   rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity,
-  maker-checker + chống duyệt-đôi, validation số tiền, refresh rotation + logout, TOTP RFC 6238 + 2FA).
+  maker-checker + chống duyệt-đôi, validation số tiền, refresh rotation + logout, TOTP RFC 6238 + 2FA,
+  Kafka event backbone).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy

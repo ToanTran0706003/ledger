@@ -20,6 +20,10 @@ spring:
     enabled: true
     # Cho phép chạy migration trên DB đã có dữ liệu/bảng sẵn.
     baseline-on-migrate: true
+    placeholders:
+      # Khoá HMAC cho hash-chain (V16 backfill). PHẢI trùng ledger.security.hashchain.key bên dưới
+      # để app tái tính hash khớp. Prod đặt LEDGER_HASHCHAIN_KEY.
+      hashchainKey: "${LEDGER_HASHCHAIN_KEY:dev-hashchain-key-change-in-prod-0123456789abcdef}"
 
 management:
   endpoints:
@@ -99,4 +103,8 @@ ledger:
       secret: "${LEDGER_JWT_SECRET:dev-only-secret-please-change-32bytes-minimum-0123456789}"
       access-ttl-minutes: 15
       refresh-ttl-days: 7
+    hashchain:
+      # Khoá HMAC-SHA256 cho hash-chain (tamper-PROOF: attacker ghi DB nhưng không có khoá thì không
+      # tự tính lại chuỗi hợp lệ). PHẢI trùng spring.flyway.placeholders.hashchainKey. Prod đặt env.
+      key: "${LEDGER_HASHCHAIN_KEY:dev-hashchain-key-change-in-prod-0123456789abcdef}"
 

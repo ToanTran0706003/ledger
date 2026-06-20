@@ -1,21 +1,25 @@
 package com.ledger.audit.query;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
- * Kiểm tra tính toàn vẹn của hash-chain: với mỗi event, tái tính hash từ (prev_hash + nội dung)
- * và đối chiếu với hash đã lưu; đồng thời kiểm tra prev_hash nối đúng hash của event trước trong
- * cùng aggregate (event đầu tiên nối vào GENESIS = 64 số 0). Bất kỳ sửa đổi nào lên dòng event
- * đã ghi đều làm lệch hash và bị phát hiện. Biểu thức hash khớp y hệt lúc append và lúc backfill.
+ * Kiểm tra tính toàn vẹn của hash-chain: với mỗi event, tái tính HMAC-SHA256 (khoá bí mật) từ
+ * (prev_hash + nội dung) và đối chiếu với hash đã lưu; đồng thời kiểm tra prev_hash nối đúng hash
+ * của event trước trong cùng aggregate (event đầu tiên nối vào GENESIS = 64 số 0). Bất kỳ sửa đổi
+ * nào lên dòng event đã ghi đều làm lệch hash và bị phát hiện; vì dùng KHOÁ ngoài DB nên attacker
+ * có quyền ghi DB cũng không tự tính lại được chuỗi hợp lệ. Biểu thức khớp y hệt lúc append/backfill.
  */
 @Service
 public class HashChainVerifier {
 
     private final JdbcTemplate jdbc;
+    private final String hashchainKey;
 
-    public HashChainVerifier(JdbcTemplate jdbc) {
+    public HashChainVerifier(JdbcTemplate jdbc, @Value("${ledger.security.hashchain.key}") String hashchainKey) {
         this.jdbc = jdbc;
+        this.hashchainKey = hashchainKey;
     }
 
     public HashChainReport verify() {
@@ -25,10 +29,10 @@ public class HashChainVerifier {
                 """
                 WITH chk AS (
                     SELECT global_seq, prev_hash, hash,
-                           encode(sha256(convert_to(
+                           encode(hmac(convert_to(
                                prev_hash || aggregate_id || ':' || aggregate_version::text || ':'
                                || event_type || ':' || payload::text || ':' || COALESCE(metadata::text, ''),
-                               'UTF8')), 'hex') AS recomputed,
+                               'UTF8'), convert_to(?, 'UTF8'), 'sha256'), 'hex') AS recomputed,
                            lag(hash) OVER (PARTITION BY aggregate_id ORDER BY aggregate_version) AS expected_prev
                     FROM events
                 )
@@ -38,7 +42,8 @@ public class HashChainVerifier {
                 ORDER BY global_seq
                 LIMIT 1
                 """,
-                rs -> rs.next() ? rs.getLong(1) : null);
+                rs -> rs.next() ? rs.getLong(1) : null,
+                hashchainKey);
 
         return new HashChainReport(firstBroken == null, total, firstBroken);
     }

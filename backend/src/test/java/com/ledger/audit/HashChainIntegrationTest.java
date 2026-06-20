@@ -20,8 +20,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
- * Hash-chain chống giả mạo: mỗi event mang hash = SHA-256 của (hash trước + nội dung).
- * Sửa một event đã ghi sẽ làm gãy chuỗi và verify phát hiện được đúng chỗ gãy.
+ * Hash-chain chống giả mạo: mỗi event mang hash = HMAC-SHA256(khoá bí mật; hash trước + nội dung).
+ * Sửa một event đã ghi sẽ làm gãy chuỗi và verify phát hiện được đúng chỗ gãy; vì dùng khoá ngoài
+ * DB nên attacker tự tính lại hash (không có khoá) cũng bị phát hiện (tamper-PROOF, ADR-0021).
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -98,6 +99,33 @@ class HashChainIntegrationTest {
 
         HashChainReport report = verifier.verify();
 
+        assertThat(report.intact()).isFalse();
+        assertThat(report.firstBrokenSeq()).isEqualTo(seq);
+    }
+
+    @Test
+    void attacker_recomputing_hash_with_plain_sha256_is_still_detected() {
+        String acc = openAccount.handle(new OpenAccountCommand("Trudy", AccountType.CUSTOMER));
+        money.deposit(new DepositCommand(acc, new BigDecimal("1000")));
+
+        Long seq = jdbc.queryForObject(
+                "SELECT global_seq FROM events WHERE aggregate_id = ? ORDER BY global_seq LIMIT 1",
+                Long.class, acc);
+        // Attacker sửa payload RỒI tự "vá" hash bằng công thức công khai SHA-256 (không có khoá HMAC).
+        jdbc.update(
+                "UPDATE events SET payload = payload || '{\"tampered\":true}'::jsonb WHERE global_seq = ?", seq);
+        jdbc.update(
+                """
+                UPDATE events SET hash = encode(sha256(convert_to(
+                    prev_hash || aggregate_id || ':' || aggregate_version::text || ':'
+                    || event_type || ':' || payload::text || ':' || COALESCE(metadata::text, ''),
+                    'UTF8')), 'hex')
+                WHERE global_seq = ?
+                """,
+                seq);
+
+        // Vì verify tái tính bằng HMAC (cần khoá), bản vá SHA-256 của attacker không khớp -> vẫn bị bắt.
+        HashChainReport report = verifier.verify();
         assertThat(report.intact()).isFalse();
         assertThat(report.firstBrokenSeq()).isEqualTo(seq);
     }

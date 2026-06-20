@@ -17,15 +17,19 @@ public class ProdSecurityGuard {
 
     static final String DEV_JWT_SECRET = "dev-only-secret-please-change-32bytes-minimum-0123456789";
     static final String DEV_DB_PASSWORD = "ledger";
+    static final String DEV_HASHCHAIN_KEY = "dev-hashchain-key-change-in-prod-0123456789abcdef";
 
     private final String jwtSecret;
     private final String dbPassword;
+    private final String hashchainKey;
 
     public ProdSecurityGuard(
             @Value("${ledger.security.jwt.secret}") String jwtSecret,
-            @Value("${spring.datasource.password}") String dbPassword) {
+            @Value("${spring.datasource.password}") String dbPassword,
+            @Value("${ledger.security.hashchain.key}") String hashchainKey) {
         this.jwtSecret = jwtSecret;
         this.dbPassword = dbPassword;
+        this.hashchainKey = hashchainKey;
     }
 
     @PostConstruct
@@ -41,6 +45,10 @@ public class ProdSecurityGuard {
         if (DEV_DB_PASSWORD.equals(dbPassword)) {
             throw new IllegalStateException(
                     "SPRING_DATASOURCE_PASSWORD vẫn là mật khẩu dev mặc định ở prod. Đặt mật khẩu mạnh qua biến môi trường.");
+        }
+        if (hashchainKey == null || hashchainKey.isBlank() || DEV_HASHCHAIN_KEY.equals(hashchainKey)) {
+            throw new IllegalStateException(
+                    "LEDGER_HASHCHAIN_KEY chưa đặt cho prod (đang dùng khoá HMAC mặc định dev). Đặt khoá ngẫu nhiên mạnh.");
         }
     }
 }

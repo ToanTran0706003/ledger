@@ -24,11 +24,17 @@ public class JdbcEventStore implements EventStore {
     private final JdbcTemplate jdbc;
     private final EventSerde serde;
     private final CorrelationContext correlationContext;
+    private final String hashchainKey;
 
-    public JdbcEventStore(JdbcTemplate jdbc, EventSerde serde, CorrelationContext correlationContext) {
+    public JdbcEventStore(
+            JdbcTemplate jdbc,
+            EventSerde serde,
+            CorrelationContext correlationContext,
+            @org.springframework.beans.factory.annotation.Value("${ledger.security.hashchain.key}") String hashchainKey) {
         this.jdbc = jdbc;
         this.serde = serde;
         this.correlationContext = correlationContext;
+        this.hashchainKey = hashchainKey;
     }
 
     @Override
@@ -42,22 +48,23 @@ public class JdbcEventStore implements EventStore {
                 UUID eventId = UUID.randomUUID();
                 String payload = serde.serialize(event);
 
-                // hash = SHA-256(prevHash + nội dung + metadata). payload/metadata dùng dạng canonical
-                // jsonb của DB ((?::jsonb)::text) để verify tái tính trùng khít, không phụ thuộc cách Java
-                // serialize. metadata (userId/ip/correlationId) được bảo vệ luôn; null -> coi như chuỗi rỗng.
-                // BIỂU THỨC HASH PHẢI KHỚP y hệt ở V12 (backfill) và HashChainVerifier.
+                // hash = HMAC-SHA256(khoá bí mật; prevHash + nội dung + metadata). payload/metadata dùng
+                // dạng canonical jsonb của DB ((?::jsonb)::text) để verify tái tính trùng khít, không phụ
+                // thuộc cách Java serialize. metadata (userId/ip/correlationId) được bảo vệ luôn; null ->
+                // chuỗi rỗng. Khoá HMAC (ngoài DB) khiến attacker ghi DB không tự tính lại được chuỗi.
+                // BIỂU THỨC HASH PHẢI KHỚP y hệt ở V16 (backfill) và HashChainVerifier.
                 String hash = jdbc.queryForObject(
                         """
                         INSERT INTO events (event_id, aggregate_id, aggregate_type, aggregate_version, event_type, payload, metadata, prev_hash, hash)
                         VALUES (?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?,
-                                encode(sha256(convert_to(
+                                encode(hmac(convert_to(
                                     ? || ? || ':' || ?::text || ':' || ? || ':' || (?::jsonb)::text
-                                    || ':' || COALESCE((?::jsonb)::text, ''), 'UTF8')), 'hex'))
+                                    || ':' || COALESCE((?::jsonb)::text, ''), 'UTF8'), convert_to(?, 'UTF8'), 'sha256'), 'hex'))
                         RETURNING hash
                         """,
                         String.class,
                         eventId, aggregateId, aggregateType, version, event.eventType(), payload, metadata, prevHash,
-                        prevHash, aggregateId, version, event.eventType(), payload, metadata);
+                        prevHash, aggregateId, version, event.eventType(), payload, metadata, hashchainKey);
 
                 jdbc.update(
                         "INSERT INTO outbox (event_id, event_type, payload) VALUES (?, ?, ?::jsonb)",

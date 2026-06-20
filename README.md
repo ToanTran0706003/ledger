@@ -113,6 +113,32 @@ cân). Rút một khoản lớn để thấy **tự đóng băng** chống gian 
 (seed dev) để vào màn **Quản trị**: bấm **xác minh hash-chain** (sổ không bị giả mạo) và **mở băng**
 tài khoản. Metrics tại `/actuator/prometheus`.
 
+## Demo nhanh (script đi qua mọi tính năng)
+
+Backend chạy là đủ — một script Node gọi API thật và đi qua **toàn bộ** tính năng theo phase
+(đăng ký/JWT, mở tài khoản đa tiền tệ, ghi sổ kép + integrity, chuyển tiền + ownership,
+idempotency, hold, FX, time-travel, reversal, hash-chain, fraud auto-freeze, maker-checker,
+lãi/lệnh định kỳ, phân quyền, rebuild, metrics, rate-limit):
+
+```bash
+node ops/demo-e2e.mjs      # in ra từng bước ✓ với kết quả thật
+```
+
+## Giao diện (7 màn)
+
+| Màn | Điểm nhấn |
+|-----|-----------|
+| **Đăng nhập** | Đăng nhập/đăng ký, dark theme + accent xanh |
+| **Bảng điều khiển** | Tổng số dư **theo từng tiền tệ**, badge "Sổ cân", thẻ tài khoản, feed hoạt động |
+| **Chi tiết tài khoản** | Signature **"dựng lại số dư từ chuỗi sự kiện"**, biểu đồ + **slider time-travel**, sao kê dạng sổ cái |
+| **Chuyển tiền / Quy đổi (FX)** | Chuyển cùng tiền tệ + **quy đổi tỉ giá**; báo "chờ duyệt" khi vượt ngưỡng (maker-checker) |
+| **Định kỳ** | Tạo lệnh chuyển định kỳ (scheduler at-most-once) |
+| **Kiểm toán** | Toàn vẹn sổ cái — "Sổ cân", chênh lệch 0 |
+| **Quản trị** (ADMIN/AUDITOR) | Xác minh **hash-chain**, **mở băng** tài khoản, **duyệt** giao dịch vượt ngưỡng |
+
+Trạng thái **đóng băng** hiện chip ❄ trên dashboard + banner sắc lạnh trên tài khoản (chỉ cho nạp).
+Ảnh chụp màn hình: xem hướng dẫn ở [docs/screenshots/](./docs/screenshots/README.md).
+
 ## Kiểm thử
 
 92 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi, rate-limit), **integration**

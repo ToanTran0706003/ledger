@@ -36,10 +36,15 @@
 
 > Cập nhật mục này khi tiến độ thay đổi.
 
-- **Phase hiện tại:** Phase 8 (một phần) ✅ → tùy chọn hoàn tất Phase 8 / Phase 9 / Phase 10
-- **Tài liệu:** Bộ docs nền tảng + ADR-0001..0012 + `benchmarks/` đã có
-- **Code:** backend/ (ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal + JWT/ownership/vai trò + observability + tiết kiệm/lãi & lệnh định kỳ) **và** frontend/ (React+TS, design anti-slop, signature replay); 47 backend test, CI build cả hai. Xem [README gốc](../README.md) để chạy.
-- **Demo concept:** Đã có bản preview HTML/JS (UI/UX prototype)
+- **Phase hiện tại:** Phase 0–8 hoàn chỉnh ✅ + Phase 9 (đa tiền tệ + FX) ✅ → còn lại: Phase 9 hạ
+  tầng (Kafka/microservice/saga — cần Docker) và Phase 10 (GIF/video demo).
+- **Tài liệu:** Bộ docs nền tảng + **ADR-0001..0020** + `benchmarks/` đã có.
+- **Code:** backend/ (ES/CQRS + double-entry + outbox/retry/idempotency + snapshot/time-travel/reversal
+  + JWT/ownership/vai trò + observability + tiết kiệm/lãi & lệnh định kỳ + **hold/reservation +
+  hash-chain chống giả mạo + fraud detection/đóng băng + hạn mức ngày + đa tiền tệ/FX + maker-checker**
+  + rate-limit + OWASP SCA + console admin/audit) **và** frontend/ (React+TS, 7 màn, signature replay,
+  time-travel, FX, trạng thái đóng băng, màn Quản trị). **92 backend test**, CI build cả hai. Chạy: [README gốc](../README.md).
+- **Demo:** chạy `node ops/demo-e2e.mjs` (đi qua mọi tính năng trên backend thật); hoặc dùng UI trực tiếp.
 
 ## Quy ước tài liệu
 

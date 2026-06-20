@@ -109,6 +109,7 @@ export const api = {
     request<Tokens>("/auth/register", { method: "POST", body: { username, password }, auth: false }),
   login: (username: string, password: string) =>
     request<Tokens>("/auth/login", { method: "POST", body: { username, password }, auth: false }),
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
   myAccounts: () => request<Account[]>("/accounts"),
   openAccount: (type: string, currency: string) =>
     request<{ accountId: string }>("/accounts", { method: "POST", body: { type, currency } }),

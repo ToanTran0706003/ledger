@@ -1,0 +1,23 @@
+# Dependabot: tự mở PR cập nhật phụ thuộc (gồm bản vá bảo mật) — rút ngắn cửa sổ CVE so với chỉ
+# quét OWASP theo lịch tuần (ADR-0018/0021). Quét backend (Gradle), frontend (npm), và GitHub Actions.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "backend"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "frontend"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "ci"]

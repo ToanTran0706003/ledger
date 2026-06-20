@@ -9,7 +9,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green)]()
 [![React](https://img.shields.io/badge/React-TypeScript-blue)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Event_Sourcing_%2B_CQRS-8a2be2)]()
-[![Tests](https://img.shields.io/badge/tests-96_passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-98_passing-brightgreen)]()
 [![ADRs](https://img.shields.io/badge/ADRs-21-informational)]()
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
 
@@ -141,9 +141,9 @@ Trạng thái **đóng băng** hiện chip ❄ trên dashboard + banner sắc l�
 
 ## Kiểm thử
 
-96 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi, rate-limit, validation số tiền), **integration**
+98 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi, rate-limit, validation số tiền), **integration**
 trên PostgreSQL thật (vòng đời ES/CQRS, rebuild, snapshot, time-travel, reversal, hold, hash-chain,
-fraud/freeze, hạn mức ngày, admin seed, rate limiting, đa tiền tệ + FX per-currency integrity, maker-checker + chống duyệt-đôi), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
+fraud/freeze, hạn mức ngày, admin seed, rate limiting, đa tiền tệ + FX per-currency integrity, maker-checker + chống duyệt-đôi, refresh token rotation + thu hồi), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
 thread, không double-spend), **security** (MockMvc — 401/403/ownership + phân quyền CUSTOMER/ADMIN/AUDITOR trên audit & admin), **idempotency**,
 **outbox durability**. CI (GitHub Actions) build + test backend (Postgres service) và build frontend
 trên mỗi push.

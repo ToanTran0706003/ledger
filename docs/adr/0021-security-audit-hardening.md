@@ -36,14 +36,18 @@ ownership phủ kín, RBAC chặt, BCrypt-10, JWT HS256 alg-pinned, không RNG y
 **Được:** bịt lỗ hổng mất tiền nghiêm trọng nhất; cấu hình prod an toàn-mặc-định (fail-fast, không
 lộ thông tin); toàn vẹn read model trước input độc hại. 96 test xanh.
 **Hoãn có chủ đích (ghi nhận, không trong đợt này):**
-- **Refresh token không rotate/revoke** (sống 7 ngày; logout chỉ xoá localStorage) — cần lưu jti/
-  blacklist; để Phase sau.
 - **Token ở localStorage** (rủi ro XSS; TTL access 15' giảm nhẹ) — chuyển cookie HttpOnly là thay đổi
   lớn ở cả FE/BE.
 - **Hash-chain SHA-256 không HMAC** → không chống attacker có quyền ghi DB (đã phân tích ở ADR-0014,
   hướng nâng cấp: HMAC + neo ngoài).
-- **Register lộ username tồn tại** (đánh đổi UX); **OWASP dependency-check chỉ chạy theo lịch tuần**;
-  **2FA/TOTP** (Phase 5 🟢 còn lại).
+- **Register lộ username tồn tại** (đánh đổi UX); **2FA/TOTP** (Phase 5 🟢 còn lại).
+
+## Cập nhật (làm tiếp sau đợt đầu)
+- **Refresh token rotation + thu hồi:** bảng `refresh_tokens` (whitelist, id=jti, migration V15);
+  refresh **single-use** (tiêu thụ jti cũ nguyên tử rồi cấp mới — phát hiện token lộ/replay);
+  `POST /auth/logout` thu hồi mọi refresh token của user (FE gọi khi đăng xuất). Test rotation + logout.
+- **Dependabot** (`.github/dependabot.yml`): tự mở PR cập nhật gradle/npm/github-actions — rút ngắn
+  cửa sổ CVE so với chỉ quét OWASP theo tuần.
 
 ## Phương án đã cân nhắc
 - **`@Version` (optimistic lock) cho #1** — loại: UPDATE có điều kiện `WHERE status=PENDING` đạt cùng

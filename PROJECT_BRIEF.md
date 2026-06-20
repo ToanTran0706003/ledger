@@ -190,10 +190,12 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   `server.error.*` ẩn; `amount @Digits` (chặn overflow/scale → 400); login constant-time (chống
   enumeration timing). nimbus 9.37.4 đã vá CVE-2025-53864. Hoãn: refresh rotation, token HttpOnly,
   HMAC hash-chain, 2FA.
-- Backend test: **96 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+- **Làm tiếp (ADR-0021):** refresh token **rotation single-use** + `POST /auth/logout` thu hồi
+  (bảng `refresh_tokens` whitelist, V15; FE gọi logout); **Dependabot** cho gradle/npm/actions.
+- Backend test: **98 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed,
   rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity,
-  maker-checker + chống duyệt-đôi, validation số tiền).
+  maker-checker + chống duyệt-đôi, validation số tiền, refresh token rotation + logout).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy

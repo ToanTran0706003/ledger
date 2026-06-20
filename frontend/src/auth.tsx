@@ -57,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login: async (u, p) => apply(await api.login(u, p), u),
     register: async (u, p) => apply(await api.register(u, p), u),
     logout: () => {
+      // Thu hồi refresh token phía máy chủ (best-effort) rồi xoá phiên cục bộ.
+      api.logout().catch(() => {});
       localStorage.removeItem("ledger.token");
       localStorage.removeItem("ledger.user");
       setToken(null);

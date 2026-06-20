@@ -191,11 +191,13 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   enumeration timing). nimbus 9.37.4 đã vá CVE-2025-53864. Hoãn: refresh rotation, token HttpOnly,
   HMAC hash-chain, 2FA.
 - **Làm tiếp (ADR-0021):** refresh token **rotation single-use** + `POST /auth/logout` thu hồi
-  (bảng `refresh_tokens` whitelist, V15; FE gọi logout); **Dependabot** cho gradle/npm/actions.
-- Backend test: **98 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
-  standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed,
+  (V15 whitelist); **Dependabot**; **hash-chain HMAC-SHA256** tamper-PROOF (khoá ngoài DB, pgcrypto,
+  V16); **2FA/TOTP** RFC 6238 tự cài (V17, màn "Bảo mật", login bắt buộc mã khi bật). Cố ý KHÔNG làm:
+  cookie HttpOnly (đổi XSS↔CSRF, thiết kế hiện tại hợp lý) và register enumeration (đánh đổi UX) — nêu rõ ở ADR.
+- Backend test: **105 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+  standing order, hold/reservation, hash-chain HMAC, fraud detection + freeze, hạn mức ngày, admin seed,
   rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity,
-  maker-checker + chống duyệt-đôi, validation số tiền, refresh token rotation + logout).
+  maker-checker + chống duyệt-đôi, validation số tiền, refresh rotation + logout, TOTP RFC 6238 + 2FA).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy

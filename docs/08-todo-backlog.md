@@ -70,7 +70,7 @@
 - [x] 🟡 Rate limiting (token-bucket theo IP: auth chống dò mật khẩu + write) (ADR-0018)
 - [x] 🟡 OWASP Dependency-Check trong CI (workflow lên lịch riêng + NVD key) (ADR-0018)
 - [x] 🟢 Maker-checker cho giao dịch vượt ngưỡng (four-eyes: người duyệt khác người tạo) (ADR-0020)
-- [ ] 🟢 2FA/TOTP cho thao tác nhạy cảm
+- [x] 🟢 2FA/TOTP (RFC 6238, tự cài) — bật/tắt + bắt buộc mã khi đăng nhập (ADR-0021)
 
 ## Phase 6 — Observability & Performance
 - [x] 🔴 Micrometer + endpoint Prometheus (`/actuator/prometheus`)

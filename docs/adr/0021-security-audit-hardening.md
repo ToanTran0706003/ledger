@@ -48,6 +48,21 @@ lộ thông tin); toàn vẹn read model trước input độc hại. 96 test xa
   `POST /auth/logout` thu hồi mọi refresh token của user (FE gọi khi đăng xuất). Test rotation + logout.
 - **Dependabot** (`.github/dependabot.yml`): tự mở PR cập nhật gradle/npm/github-actions — rút ngắn
   cửa sổ CVE so với chỉ quét OWASP theo tuần.
+- **Hash-chain HMAC-SHA256** (tamper-PROOF): khoá bí mật ngoài DB (pgcrypto `hmac()`, V16 re-backfill,
+  khoá qua Flyway placeholder = `ledger.security.hashchain.key`). Attacker ghi DB không tự tính lại
+  được chuỗi. Test: attacker tự vá hash bằng SHA-256 công khai vẫn bị bắt. (Thực thi hướng nâng cấp ADR-0014.)
+- **2FA/TOTP** (RFC 6238): `TotpService` tự cài (HMAC-SHA1, 6 số, 30s, Base32), V17 thêm
+  `totp_secret/totp_enabled`. Bật/tắt qua `/auth/2fa/*`; login bắt buộc mã khi đã bật (thiếu -> 401 +
+  cờ `twoFactorRequired`). UI: màn "Bảo mật" + bước nhập mã ở đăng nhập. Test: vector chuẩn RFC + luồng.
+
+### Cố ý KHÔNG làm (đánh đổi, nêu rõ lý do)
+- **Token sang cookie HttpOnly:** KHÔNG đổi. Với SPA + API JWT stateless, cookie HttpOnly chỉ **đổi**
+  bề mặt tấn công (chống XSS đọc token nhưng XSS vẫn gửi request được, và **thêm CSRF**). Thiết kế hiện
+  tại (Bearer + access TTL 15' + refresh rotation + CSP) là lựa chọn phòng thủ hợp lý; migrate rủi ro
+  phá toàn bộ auth mà lợi ích tranh cãi. Giữ nguyên là quyết định có chủ đích.
+- **Register username enumeration:** KHÔNG "sửa". Đăng ký theo username **buộc** phải báo tên đã tồn
+  tại (nếu không người dùng không chọn được tên) — chống liệt kê thật sự cần luồng xác minh email (ngoài
+  phạm vi). Đã có rate-limit /auth giảm lạm dụng. Đây là đánh đổi UX chấp nhận, không phải lỗ hổng.
 
 ## Phương án đã cân nhắc
 - **`@Version` (optimistic lock) cho #1** — loại: UPDATE có điều kiện `WHERE status=PENDING` đạt cùng

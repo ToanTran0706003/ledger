@@ -71,6 +71,11 @@ ledger:
       enabled: true
       username: admin
       password: "${LEDGER_ADMIN_PASSWORD:admin12345}"
+  rate-limit:
+    # Giới hạn tần suất request ghi theo IP (chống dò mật khẩu / lạm dụng). Tắt trong test.
+    enabled: true
+    auth: { capacity: 10, refill-per-minute: 10 }   # đăng nhập/đăng ký: chặt
+    write: { capacity: 60, refill-per-minute: 60 }   # lệnh ghi tiền: rộng hơn
   security:
     jwt:
       # HS256: secret tối thiểu 32 byte. ĐỔI trong production (qua biến môi trường).

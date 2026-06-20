@@ -12,6 +12,7 @@ import com.ledger.iam.UsernameTakenException;
 import com.ledger.shared.eventstore.ConcurrencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyInProgressException;
+import com.ledger.shared.ratelimit.RateLimitExceededException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -77,6 +78,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IdempotencyInProgressException.class)
     public ProblemDetail handleIdempotencyInProgress(IdempotencyInProgressException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ProblemDetail handleRateLimit(RateLimitExceededException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)

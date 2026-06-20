@@ -29,6 +29,9 @@ ledger:
     bootstrap:
       # Tắt seed admin tự động trong test để không nhiễu user; test gọi service trực tiếp.
       enabled: false
+  rate-limit:
+    # Tắt mặc định trong test (nhiều test gọi dồn endpoint); test rate-limit tự bật qua @TestPropertySource.
+    enabled: false
   savings:
     # Lãi suất test cao bất thường để lãi quan sát được trong vài ms (chỉ kiểm wiring;
     # độ chính xác toán đã được InterestCalculatorTest phủ với số chính xác).

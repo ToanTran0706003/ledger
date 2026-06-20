@@ -137,6 +137,9 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   (tắt trong test). /code-review một lượt → nuốt lỗi evaluate, truyền amount (bỏ query MAX), bỏ guard
   thừa (còn 1 query), lọc REVERSAL khỏi luật, tách `AccountStateConflictException`→409 (không nuốt lỗi
   hạ tầng). (ADR-0015)
+  **Đã surface lên UI** (dùng plugin frontend-design): màn tài khoản có dải "đóng băng" sắc lạnh
+  (steel-blue, tách khỏi đỏ-lỗi) + lý do + khoá nút Rút/Chuyển/Đặt giữ (vẫn cho Nạp); dashboard có
+  chip "❄ Đóng băng". View thêm freeze_reason. Verify trực quan qua preview (rút vượt ngưỡng → auto-freeze).
 - Backend test: **74 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain, fraud detection + freeze).
 

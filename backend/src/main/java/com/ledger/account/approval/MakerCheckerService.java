@@ -53,19 +53,28 @@ public class MakerCheckerService {
         if (approverUserId.equals(pending.getMakerUserId())) {
             throw new SelfApprovalException(approvalId);
         }
+        // Giành quyền duyệt NGUYÊN TỬ trước khi chuyển tiền: chỉ lệnh đổi được PENDING->APPROVED mới
+        // tiếp tục. Hai lệnh duyệt song song -> chỉ một thắng, lệnh thua 409, KHÔNG chuyển tiền đôi.
+        int claimed = repository.transition(
+                approvalId, ApprovalStatus.PENDING, ApprovalStatus.APPROVED, approverUserId, Instant.now(), null);
+        if (claimed == 0) {
+            throw new ApprovalNotPendingException(approvalId, find(approvalId).getStatus());
+        }
         String txId = money.transfer(
                 new TransferCommand(pending.getFromAccountId(), pending.getToAccountId(), pending.getAmount()));
-        pending.markApproved(approverUserId, txId, Instant.now());
-        repository.save(pending);
+        repository.attachTxId(approvalId, txId);
         return txId;
     }
 
-    /** Từ chối một yêu cầu — không thực thi giao dịch. */
+    /** Từ chối một yêu cầu — không thực thi giao dịch. Cũng giành quyền nguyên tử (chống race với approve). */
     public void reject(String approverUserId, UUID approvalId, String reason) {
         PendingTransfer pending = find(approvalId);
         requirePending(pending);
-        pending.markRejected(approverUserId, reason, Instant.now());
-        repository.save(pending);
+        int claimed = repository.transition(
+                approvalId, ApprovalStatus.PENDING, ApprovalStatus.REJECTED, approverUserId, Instant.now(), reason);
+        if (claimed == 0) {
+            throw new ApprovalNotPendingException(approvalId, find(approvalId).getStatus());
+        }
     }
 
     public List<PendingTransfer> listPending() {

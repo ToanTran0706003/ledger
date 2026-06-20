@@ -68,21 +68,6 @@ public class PendingTransfer {
         this.createdAt = createdAt;
     }
 
-    /** Đánh dấu đã duyệt + ghi txId của giao dịch thật vừa thực thi (validation ở service). */
-    public void markApproved(String approverUserId, String txId, Instant at) {
-        this.status = ApprovalStatus.APPROVED;
-        this.decidedBy = approverUserId;
-        this.decidedAt = at;
-        this.txId = txId;
-    }
-
-    public void markRejected(String approverUserId, String reason, Instant at) {
-        this.status = ApprovalStatus.REJECTED;
-        this.decidedBy = approverUserId;
-        this.decidedAt = at;
-        this.decisionReason = reason;
-    }
-
     public UUID getId() {
         return id;
     }

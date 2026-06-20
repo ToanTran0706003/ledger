@@ -99,6 +99,43 @@ class MakerCheckerIntegrationTest {
     }
 
     @Test
+    void concurrent_approvals_execute_transfer_only_once() throws Exception {
+        TransferResult r = makerChecker.submitTransfer("maker", a, b, new BigDecimal("2000000"));
+        java.util.UUID id = r.approvalId();
+
+        int threads = 8;
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(threads);
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var ok = new java.util.concurrent.atomic.AtomicInteger();
+        var failed = new java.util.concurrent.atomic.AtomicInteger();
+        var futures = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+        for (int i = 0; i < threads; i++) {
+            futures.add(pool.submit(() -> {
+                start.await();
+                try {
+                    makerChecker.approve("admin", id);
+                    ok.incrementAndGet();
+                } catch (Exception e) {
+                    failed.incrementAndGet();
+                }
+                return null;
+            }));
+        }
+        start.countDown();
+        for (var f : futures) {
+            f.get();
+        }
+        pool.shutdown();
+
+        // Chỉ MỘT lệnh duyệt được thắng; phần còn lại bị từ chối (không thực thi).
+        assertThat(ok.get()).isEqualTo(1);
+        assertThat(failed.get()).isEqualTo(threads - 1);
+        // Tiền chỉ chuyển đúng MỘT lần — không bị rút đôi.
+        assertThat(accountQuery.findBalance(a).orElseThrow().balance()).isEqualByComparingTo("3000000");
+        assertThat(accountQuery.findBalance(b).orElseThrow().balance()).isEqualByComparingTo("2000000");
+    }
+
+    @Test
     void rejected_request_does_not_execute() {
         TransferResult r = makerChecker.submitTransfer("maker", a, b, new BigDecimal("2000000"));
 

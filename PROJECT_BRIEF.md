@@ -56,6 +56,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 16 | **Hạn mức ngày**: chặn cứng tổng ghi nợ/ngày, kiểm tra trong-transaction từ event store | `docs/adr/0016-daily-transaction-limit.md` |
 | 17 | **Console Quản trị/Kiểm toán** (UI hash-chain verify + đóng băng) + admin bootstrap | `docs/adr/0017-admin-console-and-bootstrap.md` |
 | 18 | **Hardening**: rate limiting (token-bucket/IP) + OWASP SCA (CI lịch); OTel hoãn P9 | `docs/adr/0018-hardening-rate-limit-sca-tracing.md` |
+| 19 | **Đa tiền tệ + FX** (P9): per-currency vault + integrity, FX bắc cầu vault, tỉ giá cấu hình | `docs/adr/0019-multi-currency-and-fx.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -165,9 +166,15 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
 - Test phân quyền (bổ sung): MockMvc phủ ma trận **CUSTOMER/ADMIN/AUDITOR** trên các endpoint
   nhạy cảm mới — `/audit/hash-chain` (ADMIN/AUDITOR), `/admin/fraud/frozen` + freeze/unfreeze (chỉ
   ADMIN). Lần đầu AUDITOR được test; chứng minh ranh giới bảo mật thực thi ở server.
-- Backend test: **85 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+- Phase 9 (bắt đầu — Đa tiền tệ + FX): tài khoản có **tiền tệ** (mặc định VND, tương thích ngược);
+  **mỗi tiền tệ một vault** (VND giữ id cũ `SYSTEM_VAULT`) khai sinh seedAmount. Nạp/rút/lãi/capture
+  dùng vault đúng tiền tệ; transfer cùng tiền tệ; **FX = 2 bút toán cùng tiền tệ bắc cầu qua vault**
+  ở tỉ giá **cấu hình** (client không tự đặt) → **integrity theo TỪNG tiền tệ vẫn cân**. /code-review
+  phát hiện bug thật: `toAmount` số lẻ làm tròn lệch read model NUMERIC(20,2) → báo lệch sổ giả →
+  **sửa: làm tròn toAmount về 2 chữ số**; + validate tiền tệ lúc mở. 85 test cũ xanh không đổi. (ADR-0019)
+- Backend test: **89 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed,
-  rate limiting, phân quyền admin/audit theo vai trò).
+  rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy

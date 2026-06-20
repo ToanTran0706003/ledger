@@ -101,7 +101,7 @@
 - [ ] 🟢 Kafka làm event backbone (thay outbox in-process)
 - [ ] 🟢 Tách 1–2 module thành microservice
 - [ ] 🟢 Saga cho transfer liên service + bù trừ khi lỗi
-- [ ] 🟢 Đa tiền tệ + quy đổi tỷ giá
+- [x] 🟢 Đa tiền tệ + quy đổi tỷ giá (per-currency vault + integrity, FX bắc cầu vault, tỉ giá cấu hình) (ADR-0019)
 
 ## Phase 10 — Polish & Storytelling
 - [ ] 🔴 README hoàn chỉnh: chạy < 15 phút, sơ đồ, GIF demo

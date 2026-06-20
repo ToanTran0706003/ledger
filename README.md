@@ -9,8 +9,8 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green)]()
 [![React](https://img.shields.io/badge/React-TypeScript-blue)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Event_Sourcing_%2B_CQRS-8a2be2)]()
-[![Tests](https://img.shields.io/badge/tests-89_passing-brightgreen)]()
-[![ADRs](https://img.shields.io/badge/ADRs-19-informational)]()
+[![Tests](https://img.shields.io/badge/tests-92_passing-brightgreen)]()
+[![ADRs](https://img.shields.io/badge/ADRs-20-informational)]()
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
 
 Mọi thay đổi tiền là một **event bất biến** (không bao giờ UPDATE/DELETE). Số dư được
@@ -80,6 +80,7 @@ Mỗi lần di chuyển tiền sinh **hai posting** (một ghi nợ, một ghi c
 | **Frontend anti-slop** | React + TS, design token tự dựng; signature **"dựng lại số dư từ chuỗi sự kiện"**, time-travel viewer, sao kê dạng sổ cái, hold & trạng thái đóng băng được surface có chủ đích. |
 | **Console Quản trị/Kiểm toán** | Màn admin (hiện theo vai trò qua JWT) surface **xác minh hash-chain** (một nút → sổ nguyên vẹn?) và **quản lý đóng băng**. Admin bootstrap seed lúc khởi động (tắt ở prod). Phân quyền thật ở server (ADR-0017). |
 | **Đa tiền tệ + FX** (P9) | Mỗi tài khoản một tiền tệ, **mỗi tiền tệ một vault**; quy đổi (FX) = 2 bút toán cùng tiền tệ bắc cầu qua vault ở **tỉ giá cấu hình** → **integrity cân theo TỪNG tiền tệ**. Backward-compat hoàn toàn (ADR-0019). |
+| **Maker-checker** | Chuyển tiền **vượt ngưỡng** chờ một **ADMIN khác người tạo** duyệt (nguyên tắc bốn-mắt). Tự duyệt → 403. Khép kín bộ kiểm soát rủi ro cùng hold/fraud/hạn mức (ADR-0020). |
 
 ## Benchmark (đo thật, single-client)
 
@@ -114,9 +115,9 @@ tài khoản. Metrics tại `/actuator/prometheus`.
 
 ## Kiểm thử
 
-89 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi, rate-limit), **integration**
+92 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi, rate-limit), **integration**
 trên PostgreSQL thật (vòng đời ES/CQRS, rebuild, snapshot, time-travel, reversal, hold, hash-chain,
-fraud/freeze, hạn mức ngày, admin seed, rate limiting, đa tiền tệ + FX per-currency integrity), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
+fraud/freeze, hạn mức ngày, admin seed, rate limiting, đa tiền tệ + FX per-currency integrity, maker-checker), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
 thread, không double-spend), **security** (MockMvc — 401/403/ownership + phân quyền CUSTOMER/ADMIN/AUDITOR trên audit & admin), **idempotency**,
 **outbox durability**. CI (GitHub Actions) build + test backend (Postgres service) và build frontend
 trên mỗi push.
@@ -161,6 +162,7 @@ interest, standingorder, **hold**, **fraud**) · `audit` (integrity, hash-chain 
 | [0017](./docs/adr/0017-admin-console-and-bootstrap.md) | Console Quản trị/Kiểm toán + admin bootstrap |
 | [0018](./docs/adr/0018-hardening-rate-limit-sca-tracing.md) | Hardening: rate limiting + OWASP SCA (OTel hoãn P9) |
 | [0019](./docs/adr/0019-multi-currency-and-fx.md) | Đa tiền tệ + quy đổi tỉ giá (FX), integrity per-currency |
+| [0020](./docs/adr/0020-maker-checker.md) | Maker-checker (bốn-mắt) cho giao dịch vượt ngưỡng |
 
 ## Tech stack
 

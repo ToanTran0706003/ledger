@@ -23,6 +23,9 @@ ledger:
   holds:
     # Test tự gọi expireDue -> tắt scheduler để tất định.
     scheduler-enabled: false
+  maker-checker:
+    # Mặc định TẮT trong test (transfer chạy ngay); test maker-checker tự bật qua @TestPropertySource.
+    enabled: false
   fraud:
     # Mặc định TẮT trong test để không nhiễu các kịch bản khác; test fraud tự bật qua @TestPropertySource.
     enabled: false

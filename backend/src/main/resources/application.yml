@@ -61,6 +61,10 @@ ledger:
     # Scheduler tự nhả hold đã hết hạn. Tắt trong test để tất định.
     scheduler-enabled: true
     poll-interval-ms: 5000
+  maker-checker:
+    # Nguyên tắc bốn-mắt: chuyển tiền >= ngưỡng phải được ADMIN KHÁC người tạo duyệt. Tắt trong test.
+    enabled: true
+    threshold: 100000000
   fraud:
     # Phát hiện gian lận sau mỗi lệnh ghi nợ; tự đóng băng nếu chạm ngưỡng. Tắt trong test.
     enabled: true

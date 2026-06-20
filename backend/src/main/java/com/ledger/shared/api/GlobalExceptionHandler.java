@@ -2,6 +2,9 @@ package com.ledger.shared.api;
 
 import com.ledger.account.domain.AccountFrozenException;
 import com.ledger.account.domain.AccountNotFoundException;
+import com.ledger.account.approval.ApprovalNotFoundException;
+import com.ledger.account.approval.ApprovalNotPendingException;
+import com.ledger.account.approval.SelfApprovalException;
 import com.ledger.account.domain.AccountStateConflictException;
 import com.ledger.account.domain.DailyLimitExceededException;
 import com.ledger.account.domain.HoldNotFoundException;
@@ -52,6 +55,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HoldNotFoundException.class)
     public ProblemDetail handleHoldNotFound(HoldNotFoundException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(SelfApprovalException.class)
+    public ProblemDetail handleSelfApproval(SelfApprovalException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    @ExceptionHandler(ApprovalNotPendingException.class)
+    public ProblemDetail handleApprovalNotPending(ApprovalNotPendingException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(ApprovalNotFoundException.class)
+    public ProblemDetail handleApprovalNotFound(ApprovalNotFoundException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
 

@@ -100,7 +100,7 @@
 - [x] 🟢 Tách read/write datasource (CQRS): đọc kiểm toán/báo cáo → read pool, prod trỏ replica (ADR-0022)
 - [x] 🟢 Kafka làm event backbone (outbox → Kafka → consumer; gated config, Kafka KRaft trong compose) (ADR-0023)
 - [x] 🟢 Tách `audit` thành microservice độc lập (consume Kafka, read model + integrity riêng; compose đa-service; event replay rehydrate) (ADR-0024)
-- [ ] 🟢 Saga cho transfer liên service + bù trừ khi lỗi (làm tiếp — đã có nền 2 service + Kafka)
+- [x] 🟢 Saga rút tiền cần duyệt tuân thủ (orchestrator: reserve hold → compliance → capture/release; bù trừ khi từ chối/lỗi) (ADR-0025)
 - [x] 🟢 Đa tiền tệ + quy đổi tỷ giá (per-currency vault + integrity, FX bắc cầu vault, tỉ giá cấu hình) (ADR-0019)
 
 ## Phase 10 — Polish & Storytelling

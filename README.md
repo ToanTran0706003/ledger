@@ -10,7 +10,7 @@
 [![React](https://img.shields.io/badge/React-TypeScript-blue)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Event_Sourcing_%2B_CQRS-8a2be2)]()
 [![Tests](https://img.shields.io/badge/tests-106_passing-brightgreen)]()
-[![ADRs](https://img.shields.io/badge/ADRs-24-informational)]()
+[![ADRs](https://img.shields.io/badge/ADRs-25-informational)]()
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
 
 Mọi thay đổi tiền là một **event bất biến** (không bao giờ UPDATE/DELETE). Số dư được

@@ -1,0 +1,12 @@
+server:
+  port: 8083
+
+ledger:
+  compliance:
+    threshold: 50000000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

@@ -72,5 +72,25 @@ services:
     ports:
       - "8081:8081"
 
+  # compliance-service (ADR-0025): quyết định duyệt/từ chối theo ngưỡng cho Saga.
+  compliance-service:
+    build: ../services/compliance-service
+    container_name: ledger-compliance-service
+    ports:
+      - "8083:8083"
+
+  # saga-orchestrator (ADR-0025): điều phối Saga rút tiền (reserve hold -> compliance -> capture/release).
+  saga-orchestrator:
+    build: ../services/saga-orchestrator
+    container_name: ledger-saga-orchestrator
+    depends_on:
+      - ledger-core
+      - compliance-service
+    environment:
+      LEDGER_CORE_URL: http://ledger-core:8080
+      COMPLIANCE_URL: http://compliance-service:8083
+    ports:
+      - "8082:8082"
+
 volumes:
   ledger-pgdata:

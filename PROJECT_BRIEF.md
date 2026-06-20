@@ -202,7 +202,12 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   (ADR-0023) + **tách `audit` thành microservice** (ADR-0024: `services/audit-service/` consume Kafka,
   read model + integrity riêng; compose đa-service postgres+kafka+core+audit; **event replay** rehydrate
   consumer mới; verify liên service end-to-end: deposit qua core → Kafka → audit, tổng = seed). Codex
-  dựng greenfield audit-service trong worktree song song. Còn lại: **Saga**.
+  dựng greenfield audit-service trong worktree song song.
+- **Saga (ADR-0025) — HOÀN TẤT Phase 9:** `saga-orchestrator` (8082) + `compliance-service` (8083) điều
+  phối "rút tiền cần duyệt": reserve **hold** (core) → compliance quyết → **capture** (duyệt) /
+  **release = bù trừ** (từ chối/lỗi). Không sửa core (dùng REST hold API). Codex dựng 2 service (TDD,
+  test cả nhánh capture + compensation); verify end-to-end thật: rút 30tr→COMPLETED, rút 80tr→REJECTED +
+  hold nhả (available phục hồi). Phase 9 đủ 5 mục: đa tiền tệ + read/write split + Kafka + microservice + Saga.
 - Backend test: **106 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain HMAC, fraud detection + freeze, hạn mức ngày, admin seed,
   rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity,

@@ -1,0 +1,13 @@
+server:
+  port: 8082
+
+ledger:
+  saga:
+    ledger-core-url: ${LEDGER_CORE_URL:http://localhost:8080}
+    compliance-url: ${COMPLIANCE_URL:http://localhost:8083}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

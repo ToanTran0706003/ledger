@@ -64,6 +64,29 @@ jobs:
       - name: Build and test (audit-service)
         run: ./gradlew --no-daemon build
 
+  saga-services:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [compliance-service, saga-orchestrator]
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build and test (${{ matrix.service }})
+        run: ./gradlew --no-daemon build
+
   frontend:
     runs-on: ubuntu-latest
     defaults:

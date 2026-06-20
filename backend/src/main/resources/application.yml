@@ -36,7 +36,8 @@ ledger:
     # Lượng tiền "khai sinh" nạp vào MỖI vault tiền tệ; cũng là hằng số integrity check (per-currency).
     seed-amount: 1000000000000.00
     # Mỗi tiền tệ một vault riêng (VND giữ id cũ "SYSTEM_VAULT"). Thêm tiền tệ -> thêm vào đây.
-    currencies: [VND, USD]
+    # Dạng chuỗi phẩy (KHÔNG phải YAML list) để @Value bind đúng vào List<String>.
+    currencies: VND,USD
   fx:
     # Tỉ giá do hệ thống cấu hình: 1 đơn vị FROM = rate đơn vị TO. Client KHÔNG tự đặt tỉ giá.
     rates:

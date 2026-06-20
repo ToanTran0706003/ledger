@@ -93,7 +93,7 @@
 - [x] 🟡 Chuyển tiền định kỳ (scheduler + standing order, ADR-0012)
 - [x] 🟡 Hold/reservation (available vs balance) + capture/release + hết hạn tự nhả (ADR-0013)
 - [x] 🟢 Fraud detection rule-based (velocity + giao dịch lớn) + auto-freeze + admin freeze/unfreeze (ADR-0015)
-- [ ] 🟢 Hạn mức giao dịch theo ngày (chưa làm)
+- [x] 🟢 Hạn mức giao dịch theo ngày (kiểm tra trong-transaction từ event store, chính xác khi đồng thời) (ADR-0016)
 
 ## Phase 9 — Distributed (tùy chọn)
 - [ ] 🟢 Tách read DB / write DB

@@ -9,8 +9,8 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green)]()
 [![React](https://img.shields.io/badge/React-TypeScript-blue)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Event_Sourcing_%2B_CQRS-8a2be2)]()
-[![Tests](https://img.shields.io/badge/tests-74_passing-brightgreen)]()
-[![ADRs](https://img.shields.io/badge/ADRs-15-informational)]()
+[![Tests](https://img.shields.io/badge/tests-78_passing-brightgreen)]()
+[![ADRs](https://img.shields.io/badge/ADRs-16-informational)]()
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
 
 Mọi thay đổi tiền là một **event bất biến** (không bao giờ UPDATE/DELETE). Số dư được
@@ -74,6 +74,7 @@ Mỗi lần di chuyển tiền sinh **hai posting** (một ghi nợ, một ghi c
 | **Bảo mật** | JWT (access + refresh), băm BCrypt, ownership check (không truy cập chéo tài khoản), vai trò CUSTOMER/ADMIN/AUDITOR. |
 | **Hold / reservation** | Tách **số dư khả dụng vs thực** (`available = balance − Σ holds`); đặt giữ → thu (capture, ghi sổ kép) / nhả; scheduler tự nhả khi hết hạn. Ghi nợ tôn trọng `available`. |
 | **Phát hiện gian lận** | Luật rule-based sau mỗi ghi nợ (giao dịch lớn bất thường, tần suất cao) → **tự đóng băng**; tài khoản **FROZEN** chặn ghi nợ (vẫn nhận ghi có). Admin freeze/unfreeze. Best-effort, không làm hỏng giao dịch đã commit (ADR-0015). |
+| **Hạn mức ngày** | Chặn **cứng** tổng ghi nợ/ngày mỗi tài khoản, kiểm tra **trong transaction** từ event store; **chính xác cả khi đồng thời** nhờ optimistic concurrency serialize ghi nợ theo aggregate (ADR-0016). |
 | **Nghiệp vụ nâng cao** | Tài khoản tiết kiệm + **tính lãi qua replay** (bình quân gia quyền thời gian); **lệnh chuyển tiền định kỳ** (at-most-once). |
 | **Quan sát được** | Micrometer/Prometheus: độ trễ lệnh, throughput, tỉ lệ xung đột, **projection lag**. Benchmark thật (bên dưới). |
 | **Frontend anti-slop** | React + TS, design token tự dựng; signature **"dựng lại số dư từ chuỗi sự kiện"**, time-travel viewer, sao kê dạng sổ cái, hold & trạng thái đóng băng được surface có chủ đích. |
@@ -109,9 +110,9 @@ cân). Rút một khoản lớn để thấy **tự đóng băng** chống gian 
 
 ## Kiểm thử
 
-74 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi), **integration**
+78 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi), **integration**
 trên PostgreSQL thật (vòng đời ES/CQRS, rebuild, snapshot, time-travel, reversal, hold, hash-chain,
-fraud/freeze), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
+fraud/freeze, hạn mức ngày), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
 thread, không double-spend), **security** (MockMvc — 401/403/ownership/vai trò), **idempotency**,
 **outbox durability**. CI (GitHub Actions) build + test backend (Postgres service) và build frontend
 trên mỗi push.
@@ -152,6 +153,7 @@ interest, standingorder, **hold**, **fraud**) · `audit` (integrity, hash-chain 
 | [0013](./docs/adr/0013-hold-reservation.md) | Hold/reservation: available vs balance |
 | [0014](./docs/adr/0014-hash-chain-tamper-evidence.md) | Hash-chain chống giả mạo event store |
 | [0015](./docs/adr/0015-fraud-detection-and-freeze.md) | Fraud detection rule-based + đóng băng |
+| [0016](./docs/adr/0016-daily-transaction-limit.md) | Hạn mức giao dịch theo ngày |
 
 ## Tech stack
 
@@ -161,9 +163,9 @@ jqwik · React + TypeScript + Vite. Lý do từng lựa chọn: [docs/09-tech-st
 
 ## Trạng thái & lộ trình
 
-Phase 0 → 8 đã xong (gồm hold/reservation, hash-chain, fraud detection + đóng băng). Còn lại
-(tùy chọn): hạn mức giao dịch/ngày; Phase 9 (distributed: tách DB, Kafka, microservice, saga);
-Phase 10 (polish: GIF demo, trang docs). Xem [docs/07-roadmap-and-phases.md](./docs/07-roadmap-and-phases.md).
+Phase 0 → 8 **hoàn chỉnh** (gồm hold/reservation, hash-chain chống giả mạo, fraud detection +
+đóng băng, hạn mức ngày). Còn lại (tùy chọn): Phase 9 (distributed: tách DB, Kafka, microservice,
+saga); Phase 10 (polish: GIF demo, trang docs). Xem [docs/07-roadmap-and-phases.md](./docs/07-roadmap-and-phases.md).
 
 ## License
 

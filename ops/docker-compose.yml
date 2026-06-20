@@ -37,6 +37,15 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    container_name: ledger-jaeger
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+
   # Service chính (event-sourced ledger). Bật Kafka để publish event cho audit-service.
   ledger-core:
     build: ../backend
@@ -52,6 +61,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ledger
       LEDGER_KAFKA_ENABLED: "true"
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports:
       - "8080:8080"
 
@@ -69,6 +79,7 @@ services:
       AUDIT_DB_USER: ledger
       AUDIT_DB_PASSWORD: ledger
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports:
       - "8081:8081"
 
@@ -76,6 +87,8 @@ services:
   compliance-service:
     build: ../services/compliance-service
     container_name: ledger-compliance-service
+    environment:
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports:
       - "8083:8083"
 
@@ -89,6 +102,7 @@ services:
     environment:
       LEDGER_CORE_URL: http://ledger-core:8080
       COMPLIANCE_URL: http://compliance-service:8083
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports:
       - "8082:8082"
 

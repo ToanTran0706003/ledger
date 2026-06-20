@@ -1,6 +1,10 @@
 server:
   port: 8082
 
+spring:
+  application:
+    name: saga-orchestrator
+
 ledger:
   saga:
     ledger-core-url: ${LEDGER_CORE_URL:http://localhost:8080}
@@ -11,3 +15,9 @@ management:
     web:
       exposure:
         include: health
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}

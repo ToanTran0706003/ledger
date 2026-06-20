@@ -75,7 +75,7 @@
 ## Phase 6 — Observability & Performance
 - [x] 🔴 Micrometer + endpoint Prometheus (`/actuator/prometheus`)
 - [x] 🔴 Structured logging (JSON ECS, profile prod) + correlationId/userId qua MDC
-- [ ] 🟡 Tracing OpenTelemetry (hoãn sang Phase 9 — tracing trả công khi đa service; ADR-0018)
+- [x] 🟡 Tracing OpenTelemetry xuyên 4 service (Micrometer+OTLP → Jaeger; 1 trace xuyên orchestrator→core→compliance) (ADR-0026)
 - [ ] 🟡 Dashboard Grafana (chưa làm — Docker hỏng; metric đã sẵn để scrape)
 - [x] 🔴 Load test (k6 script + baseline đo thật) → `docs/benchmarks/`
 - [x] 🟡 Tối ưu index (idx_events_txid cho reversal); snapshot N cấu hình được (ADR-0010)

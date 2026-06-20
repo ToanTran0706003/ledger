@@ -1,6 +1,10 @@
 server:
   port: 8083
 
+spring:
+  application:
+    name: compliance-service
+
 ledger:
   compliance:
     threshold: 50000000
@@ -10,3 +14,9 @@ management:
     web:
       exposure:
         include: health
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}

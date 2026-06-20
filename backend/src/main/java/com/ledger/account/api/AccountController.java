@@ -61,7 +61,8 @@ public class AccountController {
     @PostMapping
     public ResponseEntity<OpenAccountResponse> open(@Valid @RequestBody OpenAccountRequest request) {
         // Chủ tài khoản là người dùng đang đăng nhập (không nhận từ body).
-        String accountId = openAccount.handle(new OpenAccountCommand(currentUser.requireUserId(), request.type()));
+        String accountId = openAccount.handle(
+                new OpenAccountCommand(currentUser.requireUserId(), request.type(), request.currencyOrDefault()));
         return ResponseEntity.status(HttpStatus.CREATED).body(new OpenAccountResponse(accountId));
     }
 

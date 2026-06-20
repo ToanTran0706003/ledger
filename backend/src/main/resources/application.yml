@@ -33,8 +33,15 @@ management:
 
 ledger:
   vault:
-    # Lượng tiền "khai sinh" nạp vào SYSTEM_VAULT; cũng là hằng số integrity check đối chiếu.
+    # Lượng tiền "khai sinh" nạp vào MỖI vault tiền tệ; cũng là hằng số integrity check (per-currency).
     seed-amount: 1000000000000.00
+    # Mỗi tiền tệ một vault riêng (VND giữ id cũ "SYSTEM_VAULT"). Thêm tiền tệ -> thêm vào đây.
+    currencies: [VND, USD]
+  fx:
+    # Tỉ giá do hệ thống cấu hình: 1 đơn vị FROM = rate đơn vị TO. Client KHÔNG tự đặt tỉ giá.
+    rates:
+      VND: { USD: 0.00004 }   # 25000 VND = 1 USD
+      USD: { VND: 25000 }
   outbox:
     # Relay poll outbox định kỳ (lưới an toàn). Tắt trong test để tất định.
     scheduler-enabled: true

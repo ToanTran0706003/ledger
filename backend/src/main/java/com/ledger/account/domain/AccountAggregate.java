@@ -18,14 +18,20 @@ public class AccountAggregate extends AbstractAggregate {
     private String accountId;
     private String owner;
     private AccountType type;
+    private String currency;
     private AccountStatus status;
     private BigDecimal balance = BigDecimal.ZERO;
     // holdId -> số tiền đang giữ. Available = balance - Σ(hold). Dùng LinkedHashMap để thứ tự ổn định.
     private final Map<String, BigDecimal> holds = new LinkedHashMap<>();
 
-    /** Mở một tài khoản mới (gọi trên aggregate vừa khởi tạo, chưa có lịch sử). */
+    /** Mở một tài khoản VND (mặc định). */
     public void open(String accountId, String owner, AccountType type) {
-        raise(new AccountOpened(accountId, owner, type, Instant.now()));
+        open(accountId, owner, type, SystemAccounts.DEFAULT_CURRENCY);
+    }
+
+    /** Mở một tài khoản với tiền tệ chỉ định (gọi trên aggregate vừa khởi tạo, chưa có lịch sử). */
+    public void open(String accountId, String owner, AccountType type, String currency) {
+        raise(new AccountOpened(accountId, owner, type, currency, Instant.now()));
     }
 
     /** Ghi có (tăng số dư). Không có invariant chặn — tiền vào luôn hợp lệ. */
@@ -134,6 +140,7 @@ public class AccountAggregate extends AbstractAggregate {
                 this.accountId = e.accountId();
                 this.owner = e.owner();
                 this.type = e.type();
+                this.currency = e.currency() != null ? e.currency() : SystemAccounts.DEFAULT_CURRENCY;
                 this.status = AccountStatus.ACTIVE;
                 this.balance = BigDecimal.ZERO;
             }
@@ -151,7 +158,7 @@ public class AccountAggregate extends AbstractAggregate {
 
     /** Ảnh chụp trạng thái hiện tại để lưu snapshot. */
     public AccountSnapshot toSnapshot() {
-        return new AccountSnapshot(accountId, owner, type, status, balance, new LinkedHashMap<>(holds));
+        return new AccountSnapshot(accountId, owner, type, currency, status, balance, new LinkedHashMap<>(holds));
     }
 
     /** Khôi phục trạng thái từ snapshot tại một version; sau đó replay event mới hơn. */
@@ -159,6 +166,7 @@ public class AccountAggregate extends AbstractAggregate {
         this.accountId = snapshot.accountId();
         this.owner = snapshot.owner();
         this.type = snapshot.type();
+        this.currency = snapshot.currency() != null ? snapshot.currency() : SystemAccounts.DEFAULT_CURRENCY;
         this.status = snapshot.status();
         this.balance = snapshot.balance();
         this.holds.clear();
@@ -184,6 +192,10 @@ public class AccountAggregate extends AbstractAggregate {
 
     public AccountType type() {
         return type;
+    }
+
+    public String currency() {
+        return currency;
     }
 
     public AccountStatus status() {

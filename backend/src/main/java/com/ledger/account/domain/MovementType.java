@@ -11,5 +11,6 @@ public enum MovementType {
     GENESIS,
     REVERSAL,
     INTEREST,
-    CAPTURE
+    CAPTURE,
+    EXCHANGE
 }

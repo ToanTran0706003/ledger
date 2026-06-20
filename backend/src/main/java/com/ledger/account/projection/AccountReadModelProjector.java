@@ -48,13 +48,14 @@ public class AccountReadModelProjector implements Projector {
     }
 
     private void onAccountOpened(AccountOpened e) {
+        String currency = e.currency() != null ? e.currency() : "VND";
         jdbc.update(
                 """
-                INSERT INTO rm_account_balance (account_id, owner, account_type, balance, available, status)
-                VALUES (?, ?, ?, 0, 0, 'ACTIVE')
+                INSERT INTO rm_account_balance (account_id, owner, account_type, currency, balance, available, status)
+                VALUES (?, ?, ?, ?, 0, 0, 'ACTIVE')
                 ON CONFLICT (account_id) DO NOTHING
                 """,
-                e.accountId(), e.owner(), e.type().name());
+                e.accountId(), e.owner(), e.type().name(), currency);
     }
 
     private void onMoneyPosted(MoneyPosted e) {

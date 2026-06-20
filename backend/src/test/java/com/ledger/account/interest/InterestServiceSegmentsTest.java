@@ -24,7 +24,7 @@ class InterestServiceSegmentsTest {
         Instant to = t0.plus(Duration.ofDays(60)); // tính tới ngày 60
 
         List<DomainEvent> events = List.of(
-                new AccountOpened("acc", "owner", AccountType.SAVINGS, t0),
+                new AccountOpened("acc", "owner", AccountType.SAVINGS, "VND", t0),
                 new MoneyPosted("acc", "tx1", Direction.CREDIT, new BigDecimal("1000000"),
                         com.ledger.account.domain.MovementType.DEPOSIT, "SYSTEM_VAULT", t1, null));
 

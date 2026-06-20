@@ -74,11 +74,12 @@ public class HoldService {
         return run(() -> {
             AccountAggregate account = load(accountId);
             BigDecimal amount = account.holdAmount(holdId);
+            String vaultId = SystemAccounts.vaultFor(account.currency());
             account.captureHold(holdId); // nhả chỗ -> available khôi phục, debit ngay sau kiểm tra đúng
-            account.debit(txId, amount, MovementType.CAPTURE, SystemAccounts.VAULT_ID);
+            account.debit(txId, amount, MovementType.CAPTURE, vaultId);
             repository.append(account);
 
-            AccountAggregate vault = load(SystemAccounts.VAULT_ID);
+            AccountAggregate vault = load(vaultId);
             vault.credit(txId, amount, MovementType.CAPTURE, accountId);
             repository.append(vault);
             return txId;

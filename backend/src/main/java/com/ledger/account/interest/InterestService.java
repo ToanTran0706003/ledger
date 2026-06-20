@@ -74,11 +74,12 @@ public class InterestService {
                 return BigDecimal.ZERO;
             }
 
-            // Lãi đến từ két hệ thống: vault ghi nợ, tiết kiệm ghi có (cân vế).
+            // Lãi đến từ két hệ thống CÙNG TIỀN TỆ: vault ghi nợ, tiết kiệm ghi có (cân vế theo currency).
             String txId = UUID.randomUUID().toString();
-            AccountAggregate vault = repository.load(SystemAccounts.VAULT_ID).orElseThrow();
+            String vaultId = SystemAccounts.vaultFor(account.currency());
+            AccountAggregate vault = repository.load(vaultId).orElseThrow();
             vault.debit(txId, amount, MovementType.INTEREST, accountId);
-            account.credit(txId, amount, MovementType.INTEREST, SystemAccounts.VAULT_ID);
+            account.credit(txId, amount, MovementType.INTEREST, vaultId);
             repository.append(vault);
             repository.append(account);
             return amount;

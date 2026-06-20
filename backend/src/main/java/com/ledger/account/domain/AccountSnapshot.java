@@ -12,6 +12,7 @@ public record AccountSnapshot(
         String accountId,
         String owner,
         AccountType type,
+        String currency,
         AccountStatus status,
         BigDecimal balance,
         Map<String, BigDecimal> holds) {

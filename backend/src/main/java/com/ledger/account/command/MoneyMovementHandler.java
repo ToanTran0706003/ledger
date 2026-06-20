@@ -46,12 +46,12 @@ public class MoneyMovementHandler {
 
     public String deposit(DepositCommand command) {
         return run("deposit", MovementType.DEPOSIT,
-                () -> move(SystemAccounts.VAULT_ID, command.accountId(), command.amount(), MovementType.DEPOSIT));
+                () -> vaultMove(command.accountId(), true, command.amount(), MovementType.DEPOSIT));
     }
 
     public String withdraw(WithdrawCommand command) {
         String txId = run("withdraw", MovementType.WITHDRAWAL,
-                () -> move(command.accountId(), SystemAccounts.VAULT_ID, command.amount(), MovementType.WITHDRAWAL));
+                () -> vaultMove(command.accountId(), false, command.amount(), MovementType.WITHDRAWAL));
         fraud.evaluate(command.accountId(), command.amount()); // giám sát ghi nợ; tự đóng băng nếu nghi gian lận
         return txId;
     }
@@ -76,18 +76,43 @@ public class MoneyMovementHandler {
         });
     }
 
-    // Chạy trong transaction (do executor mở). Load lại aggregate mỗi lần thử để có
-    // version mới nhất; invariant không-âm kiểm tra trên vế debit.
+    // Nạp/rút: vế đối ứng là vault CỦA ĐÚNG TIỀN TỆ tài khoản (deposit: vault->account; withdraw:
+    // account->vault). Hạn mức ngày chỉ áp cho vế ghi nợ của khách (withdraw).
+    private String vaultMove(String accountId, boolean deposit, BigDecimal amount, MovementType movementType) {
+        String txId = UUID.randomUUID().toString();
+
+        AccountAggregate account = repository.load(accountId).orElseThrow(() -> new AccountNotFoundException(accountId));
+        String vaultId = SystemAccounts.vaultFor(account.currency());
+        AccountAggregate vault = repository.load(vaultId).orElseThrow(() -> new AccountNotFoundException(vaultId));
+
+        if (deposit) {
+            vault.debit(txId, amount, movementType, accountId);
+            account.credit(txId, amount, movementType, vaultId);
+        } else {
+            dailyLimit.check(accountId, amount);
+            account.debit(txId, amount, movementType, vaultId);
+            vault.credit(txId, amount, movementType, accountId);
+        }
+
+        repository.append(account);
+        repository.append(vault);
+        return txId;
+    }
+
+    // Chuyển tiền giữa hai tài khoản khách CÙNG TIỀN TỆ (khác tiền tệ phải qua FX). Load lại
+    // aggregate mỗi lần thử để có version mới nhất; invariant không-âm kiểm tra trên vế debit.
     private String move(String fromId, String toId, BigDecimal amount, MovementType movementType) {
         String txId = UUID.randomUUID().toString();
 
         AccountAggregate from = repository.load(fromId).orElseThrow(() -> new AccountNotFoundException(fromId));
         AccountAggregate to = repository.load(toId).orElseThrow(() -> new AccountNotFoundException(toId));
 
-        // Hạn mức ngày chỉ áp cho tài khoản khách (vault là nguồn/đích hệ thống, không giới hạn).
-        if (!SystemAccounts.VAULT_ID.equals(fromId)) {
-            dailyLimit.check(fromId, amount);
+        if (!from.currency().equals(to.currency())) {
+            throw new IllegalArgumentException(
+                    "Không thể chuyển giữa hai tiền tệ khác nhau (%s -> %s); hãy dùng quy đổi (FX)"
+                            .formatted(from.currency(), to.currency()));
         }
+        dailyLimit.check(fromId, amount);
 
         from.debit(txId, amount, movementType, toId);
         to.credit(txId, amount, movementType, fromId);

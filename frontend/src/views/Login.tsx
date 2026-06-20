@@ -28,53 +28,89 @@ export function Login({ notify }: { notify: Notify }) {
   }
 
   return (
-    <div className="content" style={{ maxWidth: 420, marginTop: "8vh" }}>
-      <div className="brand" style={{ marginBottom: 24, fontSize: 20 }}>
-        <span className="ticks">≣</span> Ledger
-      </div>
-      <h1>{mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}</h1>
-      <p className="muted" style={{ marginTop: 8 }}>
-        Lõi sổ cái tài chính. Sự kiện bất biến, sổ luôn cân.
-      </p>
-      <form className="card stack" style={{ marginTop: 20 }} onSubmit={submit}>
-        <div className="field">
-          <label htmlFor="u">Tên đăng nhập</label>
-          <input id="u" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required minLength={3} />
-        </div>
-        <div className="field">
-          <label htmlFor="p">Mật khẩu</label>
-          <input
-            id="p"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            required
-            minLength={8}
-          />
-          {err && (
-            <div className="error" role="alert">
-              {err}
+    <div className="auth">
+      <div className="auth-grid">
+        <div className="auth-form">
+          <div className="brand" style={{ marginBottom: 20, fontSize: 20 }}>
+            <span className="ticks">≣</span> Ledger
+          </div>
+          <h1>{mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}</h1>
+          <p className="muted" style={{ marginTop: 8 }}>
+            Lõi sổ cái tài chính. Sự kiện bất biến, sổ luôn cân.
+          </p>
+          <form className="card stack" style={{ marginTop: 20 }} onSubmit={submit}>
+            <div className="field">
+              <label htmlFor="u">Tên đăng nhập</label>
+              <input id="u" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required minLength={3} />
             </div>
-          )}
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label htmlFor="p">Mật khẩu</label>
+              <input
+                id="p"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                required
+                minLength={8}
+              />
+              {err && (
+                <div className="error" role="alert">
+                  {err}
+                </div>
+              )}
+            </div>
+            <button className="primary" type="submit" disabled={busy}>
+              {busy ? "Đang xử lý" : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
+            </button>
+          </form>
+          <p className="muted" style={{ marginTop: 16 }}>
+            {mode === "login" ? "Chưa có tài khoản? " : "Đã có tài khoản? "}
+            <button
+              className="ghost"
+              type="button"
+              onClick={() => {
+                setMode(mode === "login" ? "register" : "login");
+                setErr(null);
+              }}
+            >
+              {mode === "login" ? "Tạo mới" : "Đăng nhập"}
+            </button>
+          </p>
         </div>
-        <button className="primary" type="submit" disabled={busy}>
-          {busy ? "Đang xử lý" : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
-        </button>
-      </form>
-      <p className="muted" style={{ marginTop: 16 }}>
-        {mode === "login" ? "Chưa có tài khoản? " : "Đã có tài khoản? "}
-        <button
-          className="ghost"
-          type="button"
-          onClick={() => {
-            setMode(mode === "login" ? "register" : "login");
-            setErr(null);
-          }}
-        >
-          {mode === "login" ? "Tạo mới" : "Đăng nhập"}
-        </button>
-      </p>
+
+        {/* Điểm nhấn: số dư KHÔNG được lưu — nó dựng lại từ chuỗi sự kiện bất biến. */}
+        <aside className="auth-aside" aria-hidden="true">
+          <div className="eyebrow">Số dư dựng từ chuỗi sự kiện</div>
+          <div className="auth-events">
+            <div className="auth-ev">
+              <span>Mở tài khoản</span>
+              <span className="num faint">0 ₫</span>
+            </div>
+            <div className="auth-ev">
+              <span>
+                Nạp tiền <em className="credit">+1.000.000</em>
+              </span>
+              <span className="num">1.000.000 ₫</span>
+            </div>
+            <div className="auth-ev">
+              <span>
+                Rút tiền <em className="debit">−250.000</em>
+              </span>
+              <span className="num">750.000 ₫</span>
+            </div>
+            <div className="auth-ev">
+              <span>
+                Chuyển tiền <em className="debit">−300.000</em>
+              </span>
+              <span className="num">450.000 ₫</span>
+            </div>
+          </div>
+          <div className="auth-eq">
+            số dư <span className="faint">=</span> <span className="num accent-text">Σ</span> sự kiện
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

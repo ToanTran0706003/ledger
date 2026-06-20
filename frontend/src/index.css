@@ -119,6 +119,21 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 
 .content { width: 100%; max-width: 920px; margin: 0 auto; padding: 28px 24px 64px; flex: 1; }
 
+/* Màn đăng nhập: căn giữa cả khối; cột phải là điểm nhấn "số dư dựng từ chuỗi sự kiện". */
+.auth { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+.auth-grid { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 360px); gap: 44px; align-items: center; width: 100%; max-width: 820px; }
+.auth-aside { display: grid; gap: 14px; }
+.auth-events { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.auth-ev { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 16px; font-size: 14px; }
+.auth-ev + .auth-ev { border-top: 1px solid var(--surface-2); }
+.auth-ev em { font-style: normal; font-family: var(--mono); font-size: 12px; }
+.auth-eq { font-size: 13px; color: var(--muted); letter-spacing: 0.01em; text-align: center; }
+.accent-text { color: var(--accent); }
+@media (max-width: 800px) {
+  .auth-grid { grid-template-columns: 1fr; max-width: 400px; }
+  .auth-aside { display: none; }
+}
+
 .row { display: flex; align-items: center; gap: 12px; }
 .spread { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .stack { display: grid; gap: var(--gap); }

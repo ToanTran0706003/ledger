@@ -22,6 +22,9 @@ ledger:
   fraud:
     # Mặc định TẮT trong test để không nhiễu các kịch bản khác; test fraud tự bật qua @TestPropertySource.
     enabled: false
+  daily-limit:
+    # Mặc định TẮT trong test; test hạn mức tự bật + ngưỡng thấp qua @TestPropertySource.
+    enabled: false
   savings:
     # Lãi suất test cao bất thường để lãi quan sát được trong vài ms (chỉ kiểm wiring;
     # độ chính xác toán đã được InterestCalculatorTest phủ với số chính xác).

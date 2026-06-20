@@ -27,18 +27,21 @@ public class MoneyMovementHandler {
     private final OutboxRelay relay;
     private final LedgerMetrics metrics;
     private final FraudService fraud;
+    private final DailyLimitGuard dailyLimit;
 
     public MoneyMovementHandler(
             AccountRepository repository,
             RetryingTransactionExecutor executor,
             OutboxRelay relay,
             LedgerMetrics metrics,
-            FraudService fraud) {
+            FraudService fraud,
+            DailyLimitGuard dailyLimit) {
         this.repository = repository;
         this.executor = executor;
         this.relay = relay;
         this.metrics = metrics;
         this.fraud = fraud;
+        this.dailyLimit = dailyLimit;
     }
 
     public String deposit(DepositCommand command) {
@@ -80,6 +83,11 @@ public class MoneyMovementHandler {
 
         AccountAggregate from = repository.load(fromId).orElseThrow(() -> new AccountNotFoundException(fromId));
         AccountAggregate to = repository.load(toId).orElseThrow(() -> new AccountNotFoundException(toId));
+
+        // Hạn mức ngày chỉ áp cho tài khoản khách (vault là nguồn/đích hệ thống, không giới hạn).
+        if (!SystemAccounts.VAULT_ID.equals(fromId)) {
+            dailyLimit.check(fromId, amount);
+        }
 
         from.debit(txId, amount, movementType, toId);
         to.credit(txId, amount, movementType, fromId);

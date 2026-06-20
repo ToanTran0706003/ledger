@@ -3,6 +3,7 @@ package com.ledger.shared.api;
 import com.ledger.account.domain.AccountFrozenException;
 import com.ledger.account.domain.AccountNotFoundException;
 import com.ledger.account.domain.AccountStateConflictException;
+import com.ledger.account.domain.DailyLimitExceededException;
 import com.ledger.account.domain.HoldNotFoundException;
 import com.ledger.account.domain.InsufficientFundsException;
 import com.ledger.account.domain.TransactionNotFoundException;
@@ -30,6 +31,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountFrozenException.class)
     public ProblemDetail handleAccountFrozen(AccountFrozenException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+    }
+
+    @ExceptionHandler(DailyLimitExceededException.class)
+    public ProblemDetail handleDailyLimit(DailyLimitExceededException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
     }
 

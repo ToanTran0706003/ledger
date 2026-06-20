@@ -59,6 +59,11 @@ ledger:
     window-seconds: 60
     max-debits-per-window: 10
     large-amount: 100000000
+  daily-limit:
+    # Hạn mức tổng ghi nợ (rút + chuyển) theo ngày cho mỗi tài khoản khách. Tắt trong test.
+    enabled: true
+    max-per-day: 500000000
+    zone: Asia/Ho_Chi_Minh
   security:
     jwt:
       # HS256: secret tối thiểu 32 byte. ĐỔI trong production (qua biến môi trường).

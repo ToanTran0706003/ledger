@@ -109,7 +109,7 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
           <p className="muted">Mở một tài khoản để bắt đầu nạp, rút và chuyển tiền.</p>
         </div>
       ) : (
-        <div className="grid-2">
+        <div className="grid-auto">
           {accounts.map((a) => (
             <button
               key={a.accountId}

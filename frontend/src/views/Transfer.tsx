@@ -40,7 +40,7 @@ export function Transfer({ notify, onDone }: { notify: Notify; onDone: () => voi
   }
 
   return (
-    <div className="stack" style={{ maxWidth: 520 }}>
+    <div className="stack" style={{ maxWidth: 520, marginInline: "auto", width: "100%" }}>
       <div>
         <div className="eyebrow">Lệnh</div>
         <h1>Chuyển tiền</h1>

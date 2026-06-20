@@ -18,7 +18,7 @@ export function Audit({ notify }: { notify: Notify }) {
   const diff = report ? report.totalBalance - report.expectedTotal : 0;
 
   return (
-    <div className="stack" style={{ maxWidth: 680 }}>
+    <div className="stack" style={{ maxWidth: 680, marginInline: "auto", width: "100%" }}>
       <div>
         <div className="eyebrow">Kiểm toán</div>
         <h1>Toàn vẹn sổ cái</h1>

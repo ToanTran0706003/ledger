@@ -71,7 +71,7 @@ export function Admin({ notify, roles }: { notify: Notify; roles: string[] }) {
   }
 
   return (
-    <div className="stack" style={{ maxWidth: 720 }}>
+    <div className="stack" style={{ maxWidth: 720, marginInline: "auto", width: "100%" }}>
       <div>
         <div className="eyebrow">Vận hành & kiểm toán</div>
         <h1>Quản trị</h1>

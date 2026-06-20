@@ -86,16 +86,18 @@ function AppShell({ notify }: { notify: Notify }) {
         </div>
       </header>
       <main className="content">
-        {view.name === "dashboard" && (
-          <Dashboard notify={notify} onOpenAccount={(id) => setView({ name: "account", id })} />
-        )}
-        {view.name === "account" && (
-          <AccountView accountId={view.id} notify={notify} onBack={() => setView({ name: "dashboard" })} />
-        )}
-        {view.name === "transfer" && <Transfer notify={notify} onDone={() => setView({ name: "dashboard" })} />}
-        {view.name === "standing" && <StandingOrders notify={notify} />}
-        {view.name === "audit" && <Audit notify={notify} />}
-        {view.name === "admin" && <Admin notify={notify} roles={roles} />}
+        <div className="view" key={view.name === "account" ? "account-" + view.id : view.name}>
+          {view.name === "dashboard" && (
+            <Dashboard notify={notify} onOpenAccount={(id) => setView({ name: "account", id })} />
+          )}
+          {view.name === "account" && (
+            <AccountView accountId={view.id} notify={notify} onBack={() => setView({ name: "dashboard" })} />
+          )}
+          {view.name === "transfer" && <Transfer notify={notify} onDone={() => setView({ name: "dashboard" })} />}
+          {view.name === "standing" && <StandingOrders notify={notify} />}
+          {view.name === "audit" && <Audit notify={notify} />}
+          {view.name === "admin" && <Admin notify={notify} roles={roles} />}
+        </div>
       </main>
     </div>
   );

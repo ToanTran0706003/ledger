@@ -49,7 +49,7 @@ export function StandingOrders({ notify }: { notify: Notify }) {
   }
 
   return (
-    <div className="stack" style={{ maxWidth: 680 }}>
+    <div className="stack" style={{ maxWidth: 680, marginInline: "auto", width: "100%" }}>
       <div>
         <div className="eyebrow">Tự động</div>
         <h1>Chuyển tiền định kỳ</h1>

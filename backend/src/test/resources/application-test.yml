@@ -7,6 +7,10 @@ spring:
     password: ledger
 
 ledger:
+  vault:
+    # Test mặc định CHỈ VND (giữ giả định một-tiền-tệ của các test cũ); test multi-currency tự
+    # bật VND,USD qua @TestPropertySource. KHÔNG kế thừa "VND,USD" từ application.yml.
+    currencies: VND
   outbox:
     # Test tự gọi drain (qua handler) -> tắt scheduler để kết quả tất định, không flaky.
     scheduler-enabled: false

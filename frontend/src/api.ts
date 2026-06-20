@@ -47,6 +47,15 @@ export type BalanceAt = { accountId: string; asOf: string; balance: number };
 export type IntegrityReport = { totalBalance: number; expectedTotal: number; balanced: boolean };
 export type HashChainReport = { intact: boolean; eventsChecked: number; firstBrokenSeq: number | null };
 export type FrozenAccount = { accountId: string; owner: string; freezeReason: string | null };
+export type TransferResult = { status: "EXECUTED" | "PENDING_APPROVAL"; txId: string | null; approvalId: string | null };
+export type PendingApproval = {
+  id: string;
+  makerUserId: string;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  createdAt: string;
+};
 
 export class ApiError extends Error {
   status: number;
@@ -122,11 +131,14 @@ export const api = {
   withdraw: (id: string, amount: number) =>
     request<{ txId: string }>(`/accounts/${id}/withdraw`, { method: "POST", body: { amount }, idempotent: true }),
   transfer: (fromAccountId: string, toAccountId: string, amount: number) =>
-    request<{ txId: string }>("/transfers", {
+    request<TransferResult>("/transfers", {
       method: "POST",
       body: { fromAccountId, toAccountId, amount },
       idempotent: true,
     }),
+  pendingApprovals: () => request<PendingApproval[]>("/admin/approvals"),
+  approveTransfer: (id: string) => request<{ txId: string }>(`/admin/approvals/${id}/approve`, { method: "POST" }),
+  rejectTransfer: (id: string) => request<void>(`/admin/approvals/${id}/reject`, { method: "POST" }),
   exchange: (fromAccountId: string, toAccountId: string, amount: number) =>
     request<{ txId: string }>("/exchanges", {
       method: "POST",

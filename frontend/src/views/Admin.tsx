@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api";
-import type { FrozenAccount, HashChainReport } from "../api";
-import { shortId } from "../format";
+import type { FrozenAccount, HashChainReport, PendingApproval } from "../api";
+import { money, shortId } from "../format";
 import type { Notify } from "../ui";
 
 /**
@@ -13,6 +13,7 @@ export function Admin({ notify, roles }: { notify: Notify; roles: string[] }) {
   const [chain, setChain] = useState<HashChainReport | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [frozen, setFrozen] = useState<FrozenAccount[] | null>(null);
+  const [pending, setPending] = useState<PendingApproval[] | null>(null);
 
   async function loadFrozen() {
     try {
@@ -22,10 +23,31 @@ export function Admin({ notify, roles }: { notify: Notify; roles: string[] }) {
     }
   }
 
+  async function loadPending() {
+    try {
+      setPending(await api.pendingApprovals());
+    } catch (ex) {
+      notify(ex instanceof ApiError ? ex.message : "Không tải được yêu cầu chờ duyệt.", "err");
+    }
+  }
+
   useEffect(() => {
-    if (isAdmin) loadFrozen();
+    if (isAdmin) {
+      loadFrozen();
+      loadPending();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function decide(fn: () => Promise<unknown>, okMsg: string) {
+    try {
+      await fn();
+      notify(okMsg);
+      await loadPending();
+    } catch (ex) {
+      notify(ex instanceof ApiError ? ex.message : "Thao tác thất bại.", "err");
+    }
+  }
 
   async function verify() {
     setVerifying(true);
@@ -102,6 +124,47 @@ export function Admin({ notify, roles }: { notify: Notify; roles: string[] }) {
                   <button className="ghost" onClick={() => unfreeze(f.accountId)}>
                     Mở băng
                   </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="card">
+          <h2>Giao dịch chờ duyệt</h2>
+          <p className="muted" style={{ marginTop: 0 }}>
+            Chuyển tiền vượt ngưỡng cần một người duyệt KHÁC người tạo (nguyên tắc bốn-mắt).
+          </p>
+          {pending === null ? (
+            <div className="skeleton" style={{ height: 60 }} />
+          ) : pending.length === 0 ? (
+            <p className="muted">Không có giao dịch nào chờ duyệt.</p>
+          ) : (
+            <div className="feed">
+              {pending.map((p) => (
+                <div key={p.id} className="feed-row">
+                  <div className="meta">
+                    <span>
+                      {money(p.amount)} · {shortId(p.fromAccountId)} → {shortId(p.toAccountId)}
+                    </span>
+                    <span className="when">người tạo {shortId(p.makerUserId)}</span>
+                  </div>
+                  <div className="row" style={{ gap: 8 }}>
+                    <button
+                      className="ghost"
+                      onClick={() => decide(() => api.rejectTransfer(p.id), "Đã từ chối giao dịch.")}
+                    >
+                      Từ chối
+                    </button>
+                    <button
+                      className="primary"
+                      onClick={() => decide(() => api.approveTransfer(p.id), "Đã duyệt — giao dịch thực thi.")}
+                    >
+                      Duyệt
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

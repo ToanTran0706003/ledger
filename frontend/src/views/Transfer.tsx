@@ -29,8 +29,8 @@ export function Transfer({ notify, onDone }: { notify: Notify; onDone: () => voi
     if (!(amt > 0) || !from || !to.trim()) return;
     setBusy(true);
     try {
-      await api.transfer(from, to.trim(), amt);
-      notify("Đã chuyển tiền.");
+      const r = await api.transfer(from, to.trim(), amt);
+      notify(r.status === "PENDING_APPROVAL" ? "Vượt ngưỡng — đã gửi yêu cầu, chờ ADMIN duyệt." : "Đã chuyển tiền.");
       onDone();
     } catch (ex) {
       notify(ex instanceof ApiError ? ex.message : "Chuyển tiền thất bại.", "err");

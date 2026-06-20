@@ -371,19 +371,21 @@ function ActionModal({
     if (!(amt > 0)) return;
     setBusy(true);
     try {
-      if (kind === "deposit") await api.deposit(accountId, amt);
-      else if (kind === "withdraw") await api.withdraw(accountId, amt);
-      else if (kind === "transfer") await api.transfer(accountId, to.trim(), amt);
-      else await api.placeHold(accountId, amt, Number(ttl));
-      notify(
-        kind === "deposit"
-          ? "Đã nạp tiền."
-          : kind === "withdraw"
-            ? "Đã rút tiền."
-            : kind === "transfer"
-              ? "Đã chuyển tiền."
-              : "Đã đặt giữ tiền.",
-      );
+      let msg;
+      if (kind === "deposit") {
+        await api.deposit(accountId, amt);
+        msg = "Đã nạp tiền.";
+      } else if (kind === "withdraw") {
+        await api.withdraw(accountId, amt);
+        msg = "Đã rút tiền.";
+      } else if (kind === "transfer") {
+        const r = await api.transfer(accountId, to.trim(), amt);
+        msg = r.status === "PENDING_APPROVAL" ? "Vượt ngưỡng — đã gửi yêu cầu, chờ ADMIN duyệt." : "Đã chuyển tiền.";
+      } else {
+        await api.placeHold(accountId, amt, Number(ttl));
+        msg = "Đã đặt giữ tiền.";
+      }
+      notify(msg);
       await onDone();
     } catch (ex) {
       notify(ex instanceof ApiError ? ex.message : "Giao dịch thất bại.", "err");

@@ -9,7 +9,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green)]()
 [![React](https://img.shields.io/badge/React-TypeScript-blue)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Event_Sourcing_%2B_CQRS-8a2be2)]()
-[![Tests](https://img.shields.io/badge/tests-82_passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-85_passing-brightgreen)]()
 [![ADRs](https://img.shields.io/badge/ADRs-18-informational)]()
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
 
@@ -113,10 +113,10 @@ tài khoản. Metrics tại `/actuator/prometheus`.
 
 ## Kiểm thử
 
-82 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi, rate-limit), **integration**
+85 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi, rate-limit), **integration**
 trên PostgreSQL thật (vòng đời ES/CQRS, rebuild, snapshot, time-travel, reversal, hold, hash-chain,
 fraud/freeze, hạn mức ngày, admin seed, rate limiting), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
-thread, không double-spend), **security** (MockMvc — 401/403/ownership/vai trò), **idempotency**,
+thread, không double-spend), **security** (MockMvc — 401/403/ownership + phân quyền CUSTOMER/ADMIN/AUDITOR trên audit & admin), **idempotency**,
 **outbox durability**. CI (GitHub Actions) build + test backend (Postgres service) và build frontend
 trên mỗi push.
 

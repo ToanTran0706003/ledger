@@ -162,8 +162,12 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   bắt buộc; cần secret NVD_API_KEY). **OpenTelemetry hoãn sang Phase 9** (tracing trả công khi đa
   service; monolith đã có correlationId + metrics). /code-review → bỏ tin X-Forwarded-For (chống giả
   mạo vượt limiter) + backstop map. (ADR-0018)
-- Backend test: **82 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
-  standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed, rate limiting).
+- Test phân quyền (bổ sung): MockMvc phủ ma trận **CUSTOMER/ADMIN/AUDITOR** trên các endpoint
+  nhạy cảm mới — `/audit/hash-chain` (ADMIN/AUDITOR), `/admin/fraud/frozen` + freeze/unfreeze (chỉ
+  ADMIN). Lần đầu AUDITOR được test; chứng minh ranh giới bảo mật thực thi ở server.
+- Backend test: **85 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+  standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed,
+  rate limiting, phân quyền admin/audit theo vai trò).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy

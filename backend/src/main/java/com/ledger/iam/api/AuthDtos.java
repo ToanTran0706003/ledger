@@ -12,11 +12,19 @@ public final class AuthDtos {
 
     public record LoginRequest(
             @NotBlank String username,
-            @NotBlank String password) {}
+            @NotBlank String password,
+            String totpCode) {} // tuỳ chọn: chỉ cần khi tài khoản bật 2FA
 
     public record RefreshRequest(@NotBlank String refreshToken) {}
 
     public record TokenResponse(String accessToken, String refreshToken, String tokenType) {}
+
+    /** Trả về khi bắt đầu ghi danh 2FA: bí mật Base32 + URI otpauth để quét QR/nhập tay. */
+    public record TwoFactorSetupResponse(String secret, String otpauthUri) {}
+
+    public record TwoFactorCodeRequest(@NotBlank String code) {}
+
+    public record TwoFactorStatusResponse(boolean enabled) {}
 
     private AuthDtos() {}
 }

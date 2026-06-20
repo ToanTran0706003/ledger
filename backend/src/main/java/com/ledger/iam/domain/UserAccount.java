@@ -30,6 +30,14 @@ public class UserAccount {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    // Bí mật TOTP (Base32) và cờ đã bật 2FA. Secret tồn tại nhưng chưa enabled = đang ghi danh,
+    // chờ xác nhận bằng một mã hợp lệ trước khi bật (xem TwoFactorService).
+    @Column(name = "totp_secret")
+    private String totpSecret;
+
+    @Column(name = "totp_enabled", nullable = false)
+    private boolean totpEnabled;
+
     protected UserAccount() {
         // JPA
     }
@@ -40,6 +48,21 @@ public class UserAccount {
         this.passwordHash = passwordHash;
         this.role = role;
         this.createdAt = createdAt;
+    }
+
+    /** Bắt đầu ghi danh 2FA: lưu secret nhưng CHƯA bật (chờ xác nhận bằng mã hợp lệ). */
+    public void startTotpEnrollment(String secret) {
+        this.totpSecret = secret;
+        this.totpEnabled = false;
+    }
+
+    public void confirmTotp() {
+        this.totpEnabled = true;
+    }
+
+    public void disableTotp() {
+        this.totpSecret = null;
+        this.totpEnabled = false;
     }
 
     public UUID getId() {
@@ -60,5 +83,13 @@ public class UserAccount {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public String getTotpSecret() {
+        return totpSecret;
+    }
+
+    public boolean isTotpEnabled() {
+        return totpEnabled;
     }
 }

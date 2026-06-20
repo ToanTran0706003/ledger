@@ -51,8 +51,9 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Logout cần access token hợp lệ (để biết user nào) -> đặt TRƯỚC permitAll /auth/**.
+                        // Logout + quản lý 2FA cần access token (để biết user nào) -> ĐẶT TRƯỚC permitAll /auth/**.
                         .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
+                        .requestMatchers("/auth/2fa/**").authenticated()
                         .requestMatchers("/auth/**").permitAll()
                         // Prometheus scrape công khai cho demo; ở prod nên đặt sau cổng/mạng quản trị riêng.
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/prometheus", "/actuator/info")

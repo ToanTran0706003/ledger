@@ -11,6 +11,8 @@ import com.ledger.account.domain.HoldNotFoundException;
 import com.ledger.account.domain.InsufficientFundsException;
 import com.ledger.account.domain.TransactionNotFoundException;
 import com.ledger.iam.InvalidCredentialsException;
+import com.ledger.iam.InvalidTwoFactorCodeException;
+import com.ledger.iam.TwoFactorRequiredException;
 import com.ledger.iam.UsernameTakenException;
 import com.ledger.shared.eventstore.ConcurrencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyConflictException;
@@ -113,6 +115,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsernameTakenException.class)
     public ProblemDetail handleUsernameTaken(UsernameTakenException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    /** Đăng nhập cần mã 2FA: 401 kèm cờ twoFactorRequired để client hiện ô nhập mã. */
+    @ExceptionHandler(TwoFactorRequiredException.class)
+    public ProblemDetail handleTwoFactorRequired(TwoFactorRequiredException e) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+        pd.setProperty("twoFactorRequired", true);
+        return pd;
+    }
+
+    @ExceptionHandler(InvalidTwoFactorCodeException.class)
+    public ProblemDetail handleInvalidTwoFactorCode(InvalidTwoFactorCodeException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
     /** Lỗi Bean Validation (@Valid) -> 400 với thông điệp gọn theo từng trường, không lộ nội bộ. */

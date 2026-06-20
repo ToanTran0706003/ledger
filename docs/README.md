@@ -22,6 +22,7 @@
 | [08-todo-backlog.md](./08-todo-backlog.md) | Backlog chi tiết theo phase, checklist từng task | Hàng ngày khi code |
 | [09-tech-stack-and-setup.md](./09-tech-stack-and-setup.md) | Stack, lý do chọn, khởi tạo project, CI/CD, deploy $0 | Khi dựng môi trường |
 | [10-testing-and-quality.md](./10-testing-and-quality.md) | Chiến lược test, coverage, property-based testing, chất lượng code | Khi viết test |
+| [huong-dan-su-dung.md](./huong-dan-su-dung.md) | Hướng dẫn sử dụng Web UI cho khách hàng, quản trị viên và kiểm toán viên | Khi demo hoặc thao tác trên app |
 | [adr/](./adr/) | Architecture Decision Records — các quyết định kiến trúc đã chốt | Khi cần "vì sao" |
 
 ## Triết lý dự án (TL;DR)

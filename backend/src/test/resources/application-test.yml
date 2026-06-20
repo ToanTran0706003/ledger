@@ -25,6 +25,10 @@ ledger:
   daily-limit:
     # Mặc định TẮT trong test; test hạn mức tự bật + ngưỡng thấp qua @TestPropertySource.
     enabled: false
+  admin:
+    bootstrap:
+      # Tắt seed admin tự động trong test để không nhiễu user; test gọi service trực tiếp.
+      enabled: false
   savings:
     # Lãi suất test cao bất thường để lãi quan sát được trong vài ms (chỉ kiểm wiring;
     # độ chính xác toán đã được InterestCalculatorTest phủ với số chính xác).

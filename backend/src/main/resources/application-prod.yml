@@ -5,3 +5,10 @@ logging:
   structured:
     format:
       console: ecs
+
+# An toàn mặc định ở prod: KHÔNG tự seed admin mật khẩu mặc định. Muốn dùng thì bật tường minh
+# + đặt LEDGER_ADMIN_PASSWORD mạnh (xem ADR-0017).
+ledger:
+  admin:
+    bootstrap:
+      enabled: false

@@ -5,7 +5,7 @@ import { money, shortId, dateTime, movementLabel, accountTypeLabel } from "../fo
 import { Modal } from "../ui";
 import type { Notify } from "../ui";
 
-type Activity = HistoryRow & { accountId: string };
+type Activity = HistoryRow & { accountId: string; currency: string };
 
 export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAccount: (id: string) => void }) {
   const [accounts, setAccounts] = useState<Account[] | null>(null);
@@ -18,7 +18,9 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
       const accs = await api.myAccounts();
       setAccounts(accs);
       const hists = await Promise.all(
-        accs.map((a) => api.history(a.accountId).then((rows) => rows.map((r) => ({ ...r, accountId: a.accountId })))),
+        accs.map((a) =>
+          api.history(a.accountId).then((rows) => rows.map((r) => ({ ...r, accountId: a.accountId, currency: a.currency }))),
+        ),
       );
       setActivity(hists.flat().sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)));
       try {
@@ -146,7 +148,7 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
                 </div>
                 <span className={"amt " + (r.direction === "C" ? "credit" : "debit")}>
                   {r.direction === "C" ? "+" : "−"}
-                  {money(r.amount, currency)}
+                  {money(r.amount, r.currency)}
                 </span>
               </div>
             ))}

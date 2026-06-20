@@ -3,9 +3,11 @@ spring:
     name: ledger
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/ledger
-    username: ledger
-    password: ledger
+    # Dev mặc định Postgres local; prod BẮT BUỘC đặt qua biến môi trường (ProdSecurityGuard chặn
+    # khởi động nếu password vẫn là mặc định dev).
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ledger}
+    username: ${SPRING_DATASOURCE_USERNAME:ledger}
+    password: ${SPRING_DATASOURCE_PASSWORD:ledger}
 
   jpa:
     hibernate:
@@ -32,6 +34,9 @@ management:
       application: ledger
 
 ledger:
+  cors:
+    # Dev nới '*'. Prod đặt LEDGER_CORS_ORIGINS = danh sách domain frontend (phẩy) để siết origin.
+    allowed-origins: "${LEDGER_CORS_ORIGINS:*}"
   vault:
     # Lượng tiền "khai sinh" nạp vào MỖI vault tiền tệ; cũng là hằng số integrity check (per-currency).
     seed-amount: 1000000000000.00

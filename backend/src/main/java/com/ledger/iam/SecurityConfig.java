@@ -36,9 +36,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final String jwtSecret;
+    private final String corsAllowedOrigins;
 
-    public SecurityConfig(@Value("${ledger.security.jwt.secret}") String jwtSecret) {
+    public SecurityConfig(
+            @Value("${ledger.security.jwt.secret}") String jwtSecret,
+            @Value("${ledger.cors.allowed-origins:*}") String corsAllowedOrigins) {
         this.jwtSecret = jwtSecret;
+        this.corsAllowedOrigins = corsAllowedOrigins;
     }
 
     @Bean
@@ -58,7 +62,11 @@ public class SecurityConfig {
                         .requestMatchers("/audit/**").hasAnyRole("ADMIN", "AUDITOR")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter())))
-                .headers(h -> h.httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true)));
+                .headers(h -> h
+                        .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true))
+                        // Phòng thủ chiều sâu cho phần frontend (audit #7): chặn nguồn ngoài + nhúng iframe.
+                        .contentSecurityPolicy(csp ->
+                                csp.policyDirectives("default-src 'self'; frame-ancestors 'none'; base-uri 'self'")));
         return http.build();
     }
 
@@ -79,8 +87,19 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // Dev mặc định '*'; prod đặt LEDGER_CORS_ORIGINS = danh sách domain frontend (phẩy) -> chỉ
+        // các domain đó được gọi API (audit #4). '*' dùng allowedOriginPatterns, domain cụ thể dùng
+        // allowedOrigins (chặt hơn).
+        List<String> origins = java.util.Arrays.stream(corsAllowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*")); // dev: nới rộng; siết theo domain frontend ở prod
+        if (origins.contains("*")) {
+            config.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            config.setAllowedOrigins(origins);
+        }
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

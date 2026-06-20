@@ -18,11 +18,15 @@ public class AuthService {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwt;
+    // Hash giả để băm "tốn thời gian" ngay cả khi username không tồn tại -> san bằng thời gian phản
+    // hồi, chống liệt kê username qua timing (audit #5). Tính một lần lúc khởi động.
+    private final String dummyHash;
 
     public AuthService(UserRepository users, PasswordEncoder passwordEncoder, JwtService jwt) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.jwt = jwt;
+        this.dummyHash = passwordEncoder.encode("ledger-no-such-user-placeholder");
     }
 
     @Transactional
@@ -38,8 +42,12 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public TokenResponse login(String username, String rawPassword) {
-        UserAccount user = users.findByUsername(username).orElseThrow(InvalidCredentialsException::new);
-        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+        UserAccount user = users.findByUsername(username).orElse(null);
+        // Luôn chạy BCrypt (với hash thật hoặc hash giả) để thời gian phản hồi không tiết lộ
+        // username có tồn tại hay không. Thông điệp lỗi cũng đồng nhất cho cả hai nhánh.
+        String hash = user != null ? user.getPasswordHash() : dummyHash;
+        boolean matches = passwordEncoder.matches(rawPassword, hash);
+        if (user == null || !matches) {
             throw new InvalidCredentialsException();
         }
         return issueTokens(user);

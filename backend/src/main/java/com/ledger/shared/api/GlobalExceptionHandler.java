@@ -16,8 +16,10 @@ import com.ledger.shared.eventstore.ConcurrencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyConflictException;
 import com.ledger.shared.idempotency.IdempotencyInProgressException;
 import com.ledger.shared.ratelimit.RateLimitExceededException;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -111,5 +113,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsernameTakenException.class)
     public ProblemDetail handleUsernameTaken(UsernameTakenException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    /** Lỗi Bean Validation (@Valid) -> 400 với thông điệp gọn theo từng trường, không lộ nội bộ. */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidation(MethodArgumentNotValidException e) {
+        String detail = e.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, detail.isBlank() ? "Dữ liệu không hợp lệ." : detail);
     }
 }

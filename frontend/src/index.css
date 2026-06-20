@@ -204,6 +204,17 @@ h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 4p
 
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gap); }
 
+/* Đối chiếu sổ cái (Kiểm toán): nhãn trái / số phải, số lớn không rớt dòng. */
+.recon { display: grid; }
+.recon-row { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; padding: 13px 2px; font-size: 14px; }
+.recon-row + .recon-row { border-top: 1px solid var(--surface-2); }
+.recon-row .num { font-size: 20px; letter-spacing: -0.01em; white-space: nowrap; }
+.recon-row.total { border-top: 1px solid var(--border); margin-top: 2px; font-weight: 600; }
+.recon-row.total .num { font-size: 22px; }
+@media (max-width: 520px) {
+  .recon-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
+
 /* Dòng hoạt động gần đây */
 .feed { display: grid; }
 .feed-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--surface-2); }

@@ -31,22 +31,22 @@ export function Audit({ notify }: { notify: Notify }) {
         <div className="skeleton" style={{ height: 180 }} />
       ) : (
         <div className="card stack">
-          <span className={"badge " + (report.balanced ? "ok" : "err")} style={{ alignSelf: "flex-start" }}>
+          <span className={"badge " + (report.balanced ? "ok" : "err")} style={{ justifySelf: "start" }}>
             <span className="dot" />
             {report.balanced ? "Sổ cân" : "Lệch sổ"}
           </span>
-          <div className="stat-grid">
-            <div className="stat" style={{ padding: 0 }}>
-              <div className="label">Tổng số dư</div>
-              <div className="value">{money(report.totalBalance)}</div>
+          <div className="recon">
+            <div className="recon-row">
+              <span className="muted">Tổng số dư mọi tài khoản</span>
+              <span className="num">{money(report.totalBalance)}</span>
             </div>
-            <div className="stat" style={{ padding: 0 }}>
-              <div className="label">Lượng phát hành</div>
-              <div className="value">{money(report.expectedTotal)}</div>
+            <div className="recon-row">
+              <span className="muted">Lượng tiền phát hành</span>
+              <span className="num">{money(report.expectedTotal)}</span>
             </div>
-            <div className="stat" style={{ padding: 0 }}>
-              <div className="label">Chênh lệch</div>
-              <div className="value">{money(diff)}</div>
+            <div className="recon-row total">
+              <span>Chênh lệch</span>
+              <span className={"num " + (report.balanced ? "credit" : "debit")}>{money(diff)}</span>
             </div>
           </div>
         </div>

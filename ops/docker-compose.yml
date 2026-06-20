@@ -46,6 +46,29 @@ services:
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
 
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: ledger-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: ledger-grafana
+    depends_on:
+      - prometheus
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+
   # Service chính (event-sourced ledger). Bật Kafka để publish event cho audit-service.
   ledger-core:
     build: ../backend

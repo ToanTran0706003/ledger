@@ -76,7 +76,7 @@
 - [x] 🔴 Micrometer + endpoint Prometheus (`/actuator/prometheus`)
 - [x] 🔴 Structured logging (JSON ECS, profile prod) + correlationId/userId qua MDC
 - [x] 🟡 Tracing OpenTelemetry xuyên 4 service (Micrometer+OTLP → Jaeger; 1 trace xuyên orchestrator→core→compliance) (ADR-0026)
-- [ ] 🟡 Dashboard Grafana (chưa làm — Docker hỏng; metric đã sẵn để scrape)
+- [x] 🟡 Prometheus + Grafana (4 service expose /actuator/prometheus; Grafana provision datasource + dashboard "Ledger Services Overview"; trong compose)
 - [x] 🔴 Load test (k6 script + baseline đo thật) → `docs/benchmarks/`
 - [x] 🟡 Tối ưu index (idx_events_txid cho reversal); snapshot N cấu hình được (ADR-0010)
 

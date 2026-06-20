@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [compliance-service, saga-orchestrator]
+        service: [compliance-service, saga-orchestrator, api-gateway]
     defaults:
       run:
         working-directory: services/${{ matrix.service }}

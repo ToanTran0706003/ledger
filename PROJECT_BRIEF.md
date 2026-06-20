@@ -211,6 +211,10 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
 - **Distributed tracing (ADR-0026):** OpenTelemetry (Micrometer+OTLP) trên cả 4 service → Jaeger
   (compose, UI 16686). 1 request Saga trace **xuyên 3 service** (verify thật: 1 trace = 17 span).
   Codex implement (sửa 4 service), mình review (bắt lỗi Jaeger image tag) + verify trên Jaeger.
+- **Observability + Gateway (Codex code, mình review+verify):** Prometheus+Grafana (4 service expose
+  /actuator/prometheus; Grafana provision datasource + dashboard "Ledger Services Overview"; compose).
+  **API Gateway** `services/api-gateway` (8090, Spring Cloud Gateway 2025.0.3) gom 1 cổng: `/api/core|audit|saga/**`
+  → service tương ứng (StripPrefix). Verify: định tuyến qua gateway → register 201+token. CI: thêm api-gateway.
 - Backend test: **106 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain HMAC, fraud detection + freeze, hạn mức ngày, admin seed,
   rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity,

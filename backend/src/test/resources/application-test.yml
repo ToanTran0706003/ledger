@@ -5,8 +5,17 @@ spring:
     url: jdbc:postgresql://localhost:5432/ledger_test
     username: ledger
     password: ledger
+    # Test có nhiều application context cache song song -> giữ pool NHỎ để tổng kết nối không vượt
+    # max_connections của Postgres (write + read pool cho mỗi context). Nhỏ hơn cả mặc định cũ.
+    hikari:
+      maximum-pool-size: 4
 
 ledger:
+  datasource:
+    read:
+      configuration:
+        # Pool đọc nhỏ trong test (tổng kết nối/context = write 4 + read 2).
+        maximum-pool-size: 2
   vault:
     # Test mặc định CHỈ VND (giữ giả định một-tiền-tệ của các test cũ); test multi-currency tự
     # bật VND,USD qua @TestPropertySource. KHÔNG kế thừa "VND,USD" từ application.yml.

@@ -4,6 +4,7 @@ import com.ledger.shared.config.LedgerProperties;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,8 @@ public class IntegrityService {
     private final JdbcTemplate jdbc;
     private final LedgerProperties properties;
 
-    public IntegrityService(JdbcTemplate jdbc, LedgerProperties properties) {
+    // Đọc nặng cho kiểm toán -> read datasource (replica ở prod). Xem DataSourceConfig/ADR-0022.
+    public IntegrityService(@Qualifier("readJdbcTemplate") JdbcTemplate jdbc, LedgerProperties properties) {
         this.jdbc = jdbc;
         this.properties = properties;
     }

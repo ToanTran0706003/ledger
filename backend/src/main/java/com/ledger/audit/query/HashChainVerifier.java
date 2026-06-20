@@ -1,5 +1,6 @@
 package com.ledger.audit.query;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,10 @@ public class HashChainVerifier {
     private final JdbcTemplate jdbc;
     private final String hashchainKey;
 
-    public HashChainVerifier(JdbcTemplate jdbc, @Value("${ledger.security.hashchain.key}") String hashchainKey) {
+    // Quét toàn bảng events (đọc nặng) -> read datasource (replica ở prod). Xem ADR-0022.
+    public HashChainVerifier(
+            @Qualifier("readJdbcTemplate") JdbcTemplate jdbc,
+            @Value("${ledger.security.hashchain.key}") String hashchainKey) {
         this.jdbc = jdbc;
         this.hashchainKey = hashchainKey;
     }

@@ -97,10 +97,10 @@
 - [x] 🟢 Hạn mức giao dịch theo ngày (kiểm tra trong-transaction từ event store, chính xác khi đồng thời) (ADR-0016)
 
 ## Phase 9 — Distributed (tùy chọn)
-- [ ] 🟢 Tách read DB / write DB
-- [ ] 🟢 Kafka làm event backbone (thay outbox in-process)
-- [ ] 🟢 Tách 1–2 module thành microservice
-- [ ] 🟢 Saga cho transfer liên service + bù trừ khi lỗi
+- [x] 🟢 Tách read/write datasource (CQRS): đọc kiểm toán/báo cáo → read pool, prod trỏ replica (ADR-0022)
+- [ ] 🟢 Kafka làm event backbone (thay outbox in-process) — **cần Docker (đang hỏng)**
+- [ ] 🟢 Tách 1–2 module thành microservice — **cần Docker (đang hỏng)**
+- [ ] 🟢 Saga cho transfer liên service + bù trừ khi lỗi — **cần Docker (đang hỏng)**
 - [x] 🟢 Đa tiền tệ + quy đổi tỷ giá (per-currency vault + integrity, FX bắc cầu vault, tỉ giá cấu hình) (ADR-0019)
 
 ## Phase 10 — Polish & Storytelling

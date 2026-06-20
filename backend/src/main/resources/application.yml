@@ -38,6 +38,16 @@ management:
       application: ledger
 
 ledger:
+  datasource:
+    read:
+      # CQRS read/write split (ADR-0022): đường đọc nặng (kiểm toán/báo cáo) tách sang đây. Mặc định
+      # cùng DB ghi (một máy dev). Prod đặt LEDGER_READ_DATASOURCE_URL = read replica.
+      url: "${LEDGER_READ_DATASOURCE_URL:${spring.datasource.url}}"
+      username: "${spring.datasource.username}"
+      password: "${spring.datasource.password}"
+      configuration:
+        # Pool nhỏ: đọc kiểm toán/báo cáo ít đồng thời, không cần nhiều kết nối.
+        maximum-pool-size: 4
   cors:
     # Dev nới '*'. Prod đặt LEDGER_CORS_ORIGINS = danh sách domain frontend (phẩy) để siết origin.
     allowed-origins: "${LEDGER_CORS_ORIGINS:*}"

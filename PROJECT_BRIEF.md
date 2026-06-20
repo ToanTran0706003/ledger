@@ -59,6 +59,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 19 | **Đa tiền tệ + FX** (P9): per-currency vault + integrity, FX bắc cầu vault, tỉ giá cấu hình | `docs/adr/0019-multi-currency-and-fx.md` |
 | 20 | **Maker-checker** (four-eyes): giao dịch vượt ngưỡng chờ ADMIN khác duyệt | `docs/adr/0020-maker-checker.md` |
 | 21 | **Rà soát bảo mật + gia cố**: chống duyệt-đôi, secrets prod fail-fast, CORS/actuator/CSP, validation, login constant-time | `docs/adr/0021-security-audit-hardening.md` |
+| 22 | **Tách read/write datasource** (CQRS, P9): đọc kiểm toán/báo cáo → read pool, prod trỏ replica | `docs/adr/0022-read-write-datasource-split.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 

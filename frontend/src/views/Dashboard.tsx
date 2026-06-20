@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, ApiError } from "../api";
+import { api, ApiError, CURRENCIES } from "../api";
 import type { Account, HistoryRow, IntegrityReport } from "../api";
 import { money, shortId, dateTime, movementLabel, accountTypeLabel } from "../format";
 import { Modal } from "../ui";
@@ -45,8 +45,13 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
     );
   }
 
+  // Tổng theo TỪNG tiền tệ — không cộng chéo các currency khác nhau.
+  const totalsByCurrency = accounts.reduce<Record<string, number>>((m, a) => {
+    m[a.currency] = (m[a.currency] ?? 0) + a.balance;
+    return m;
+  }, {});
+  const currencyTotals = Object.entries(totalsByCurrency);
   const currency = accounts[0]?.currency ?? "VND";
-  const total = accounts.reduce((s, a) => s + a.balance, 0);
 
   return (
     <div className="stack">
@@ -63,7 +68,13 @@ export function Dashboard({ notify, onOpenAccount }: { notify: Notify; onOpenAcc
       <div className="stat-grid">
         <div className="card stat">
           <div className="label">Tổng số dư</div>
-          <div className="value">{money(total, currency)}</div>
+          <div className="value" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {currencyTotals.length === 0 ? (
+              money(0, currency)
+            ) : (
+              currencyTotals.map(([ccy, val]) => <span key={ccy}>{money(val, ccy)}</span>)
+            )}
+          </div>
         </div>
         <div className="card stat">
           <div className="label">Tài khoản</div>
@@ -167,12 +178,13 @@ function OpenAccountModal({
   onOpened: () => Promise<void>;
 }) {
   const [type, setType] = useState("CUSTOMER");
+  const [currency, setCurrency] = useState("VND");
   const [busy, setBusy] = useState(false);
 
   async function submit() {
     setBusy(true);
     try {
-      await api.openAccount(type);
+      await api.openAccount(type, currency);
       notify(type === "SAVINGS" ? "Đã mở tài khoản tiết kiệm." : "Đã mở tài khoản.");
       await onOpened();
     } catch (ex) {
@@ -190,6 +202,16 @@ function OpenAccountModal({
           <select id="acctype" value={type} onChange={(e) => setType(e.target.value)}>
             <option value="CUSTOMER">Thanh toán</option>
             <option value="SAVINGS">Tiết kiệm (có lãi)</option>
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="acccur">Tiền tệ</label>
+          <select id="acccur" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
         </div>
         <button className="primary" onClick={submit} disabled={busy}>

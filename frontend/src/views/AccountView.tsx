@@ -8,7 +8,7 @@ import { AreaChart } from "../chart";
 import { Modal } from "../ui";
 import type { Notify } from "../ui";
 
-type ModalKind = null | "deposit" | "withdraw" | "transfer" | "hold";
+type ModalKind = null | "deposit" | "withdraw" | "transfer" | "hold" | "exchange";
 
 export function AccountView({ accountId, notify, onBack }: { accountId: string; notify: Notify; onBack: () => void }) {
   const [account, setAccount] = useState<Account | null>(null);
@@ -105,6 +105,9 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
             </button>
             <button onClick={() => setModal("hold")} disabled={account.status === "FROZEN"}>
               Đặt giữ
+            </button>
+            <button onClick={() => setModal("exchange")} disabled={account.status === "FROZEN"}>
+              Quy đổi
             </button>
             <span className="faint num" style={{ marginLeft: "auto", alignSelf: "center" }}>{shortId(accountId)}</span>
           </div>
@@ -228,7 +231,18 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
         </>
       )}
 
-      {modal && (
+      {modal === "exchange" && account ? (
+        <ExchangeModal
+          accountId={accountId}
+          fromCurrency={account.currency}
+          notify={notify}
+          onClose={() => setModal(null)}
+          onDone={async () => {
+            setModal(null);
+            await load();
+          }}
+        />
+      ) : modal ? (
         <ActionModal
           kind={modal}
           accountId={accountId}
@@ -239,8 +253,89 @@ export function AccountView({ accountId, notify, onBack }: { accountId: string; 
             await load();
           }}
         />
-      )}
+      ) : null}
     </div>
+  );
+}
+
+function ExchangeModal({
+  accountId,
+  fromCurrency,
+  notify,
+  onClose,
+  onDone,
+}: {
+  accountId: string;
+  fromCurrency: string;
+  notify: Notify;
+  onClose: () => void;
+  onDone: () => Promise<void>;
+}) {
+  const [targets, setTargets] = useState<Account[] | null>(null);
+  const [to, setTo] = useState("");
+  const [amount, setAmount] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    // Đích quy đổi: tài khoản khác của mình có TIỀN TỆ KHÁC.
+    api
+      .myAccounts()
+      .then((accs) => {
+        const eligible = accs.filter((a) => a.accountId !== accountId && a.currency !== fromCurrency);
+        setTargets(eligible);
+        setTo(eligible[0]?.accountId ?? "");
+      })
+      .catch((ex) => notify(ex instanceof ApiError ? ex.message : "Không tải được tài khoản.", "err"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const amt = Number(amount);
+    if (!(amt > 0) || !to) return;
+    setBusy(true);
+    try {
+      await api.exchange(accountId, to, amt);
+      notify("Đã quy đổi tiền tệ.");
+      await onDone();
+    } catch (ex) {
+      notify(ex instanceof ApiError ? ex.message : "Quy đổi thất bại.", "err");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal title="Quy đổi tiền tệ" onClose={onClose}>
+      {targets === null ? (
+        <div className="skeleton" style={{ height: 90 }} />
+      ) : targets.length === 0 ? (
+        <p className="muted">
+          Chưa có tài khoản tiền tệ khác để quy đổi. Mở một tài khoản tiền tệ khác trước.
+        </p>
+      ) : (
+        <form className="stack" onSubmit={submit}>
+          <div className="field">
+            <label htmlFor="fx-to">Đến tài khoản (tiền tệ khác)</label>
+            <select id="fx-to" value={to} onChange={(e) => setTo(e.target.value)} required>
+              {targets.map((a) => (
+                <option key={a.accountId} value={a.accountId}>
+                  {a.currency} · {shortId(a.accountId)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="fx-amt">Số tiền ({fromCurrency})</label>
+            <input id="fx-amt" type="number" min="1" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+          </div>
+          <p className="faint" style={{ fontSize: 13, margin: 0 }}>Tỉ giá do hệ thống quy định.</p>
+          <button className="primary" type="submit" disabled={busy}>
+            {busy ? "Đang quy đổi" : "Quy đổi"}
+          </button>
+        </form>
+      )}
+    </Modal>
   );
 }
 

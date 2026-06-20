@@ -1,6 +1,9 @@
 // Client gọi API Ledger. Gắn Bearer token + sinh Idempotency-Key cho thao tác ghi tiền.
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8080";
 
+/** Tiền tệ hỗ trợ (khớp ledger.vault.currencies ở backend). */
+export const CURRENCIES = ["VND", "USD"];
+
 export type Tokens = { accessToken: string; refreshToken: string; tokenType: string };
 export type Account = {
   accountId: string;
@@ -98,7 +101,8 @@ export const api = {
   login: (username: string, password: string) =>
     request<Tokens>("/auth/login", { method: "POST", body: { username, password }, auth: false }),
   myAccounts: () => request<Account[]>("/accounts"),
-  openAccount: (type: string) => request<{ accountId: string }>("/accounts", { method: "POST", body: { type } }),
+  openAccount: (type: string, currency: string) =>
+    request<{ accountId: string }>("/accounts", { method: "POST", body: { type, currency } }),
   balance: (id: string) => request<Account>(`/accounts/${id}/balance`),
   balanceAsOf: (id: string, asOf: string) =>
     request<BalanceAt>(`/accounts/${id}/balance?asOf=${encodeURIComponent(asOf)}`),
@@ -119,6 +123,12 @@ export const api = {
     request<{ txId: string }>(`/accounts/${id}/withdraw`, { method: "POST", body: { amount }, idempotent: true }),
   transfer: (fromAccountId: string, toAccountId: string, amount: number) =>
     request<{ txId: string }>("/transfers", {
+      method: "POST",
+      body: { fromAccountId, toAccountId, amount },
+      idempotent: true,
+    }),
+  exchange: (fromAccountId: string, toAccountId: string, amount: number) =>
+    request<{ txId: string }>("/exchanges", {
       method: "POST",
       body: { fromAccountId, toAccountId, amount },
       idempotent: true,

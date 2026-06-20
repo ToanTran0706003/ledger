@@ -25,6 +25,7 @@ const MOVEMENT_LABELS: Record<string, string> = {
   REVERSAL: "Bù trừ",
   INTEREST: "Lãi",
   CAPTURE: "Thu giữ chỗ",
+  EXCHANGE: "Quy đổi",
 };
 export function movementLabel(type: string): string {
   return MOVEMENT_LABELS[type] ?? type;

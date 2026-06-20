@@ -54,6 +54,7 @@ event store, double-entry, concurrency, idempotency, time-travel, audit.
 | 14 | **Hash-chain** chống giả mạo event store (per-aggregate SHA-256) + endpoint verify | `docs/adr/0014-hash-chain-tamper-evidence.md` |
 | 15 | **Fraud detection** rule-based + đóng băng tài khoản (FROZEN chặn ghi nợ) | `docs/adr/0015-fraud-detection-and-freeze.md` |
 | 16 | **Hạn mức ngày**: chặn cứng tổng ghi nợ/ngày, kiểm tra trong-transaction từ event store | `docs/adr/0016-daily-transaction-limit.md` |
+| 17 | **Console Quản trị/Kiểm toán** (UI hash-chain verify + đóng băng) + admin bootstrap | `docs/adr/0017-admin-console-and-bootstrap.md` |
 
 Mỗi quyết định lớn mới → ghi thêm một ADR vào `docs/adr/` (template ở `01-architecture.md`).
 
@@ -147,8 +148,15 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   concurrency serialize ghi nợ theo aggregate (retry kiểm lại). Ranh giới ngày tính bằng **đồng hồ DB**
   (không lệch JVM/DB). Không cần migration. Gated `ledger.daily-limit.enabled` (tắt trong test).
   /code-review một lượt → chuyển ranh giới ngày sang đồng hồ DB. (ADR-0016) → **Phase 8 backend hoàn chỉnh.**
-- Backend test: **78 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
-  standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày).
+- Console Quản trị/Kiểm toán (UI): màn **"Quản trị"** (hiện theo vai trò qua claim `roles` trong JWT)
+  surface hai năng lực vốn chỉ có ở API — **xác minh hash-chain** (kiểm toán viên bấm nút → "Nguyên
+  vẹn"/"Phát hiện sửa đổi") và **danh sách + mở băng** tài khoản gian lận. Phân quyền thật vẫn ở
+  server (UI chỉ là affordance). **Admin bootstrap** seed lúc khởi động (idempotent, bật dev/demo,
+  TẮT ở prod, mật khẩu qua `LEDGER_ADMIN_PASSWORD`). /code-review → robust giải mã JWT (padding +
+  TextDecoder), an toàn-mặc-định ở prod + cảnh báo log, ADR-0017. Đã verify end-to-end qua preview.
+  Frontend giờ **7 màn** (thêm Quản trị).
+- Backend test: **79 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
+  standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed).
 
 **Lưu ý môi trường:** máy có sẵn PostgreSQL 18 ở `localhost:5432` (dùng trực tiếp); Docker Desktop
 hỏng do WSL nên `docker-compose`/Testcontainers tạm chưa dùng được — integration test local chạy

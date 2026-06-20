@@ -9,8 +9,8 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green)]()
 [![React](https://img.shields.io/badge/React-TypeScript-blue)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Event_Sourcing_%2B_CQRS-8a2be2)]()
-[![Tests](https://img.shields.io/badge/tests-78_passing-brightgreen)]()
-[![ADRs](https://img.shields.io/badge/ADRs-16-informational)]()
+[![Tests](https://img.shields.io/badge/tests-79_passing-brightgreen)]()
+[![ADRs](https://img.shields.io/badge/ADRs-17-informational)]()
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
 
 Mọi thay đổi tiền là một **event bất biến** (không bao giờ UPDATE/DELETE). Số dư được
@@ -78,6 +78,7 @@ Mỗi lần di chuyển tiền sinh **hai posting** (một ghi nợ, một ghi c
 | **Nghiệp vụ nâng cao** | Tài khoản tiết kiệm + **tính lãi qua replay** (bình quân gia quyền thời gian); **lệnh chuyển tiền định kỳ** (at-most-once). |
 | **Quan sát được** | Micrometer/Prometheus: độ trễ lệnh, throughput, tỉ lệ xung đột, **projection lag**. Benchmark thật (bên dưới). |
 | **Frontend anti-slop** | React + TS, design token tự dựng; signature **"dựng lại số dư từ chuỗi sự kiện"**, time-travel viewer, sao kê dạng sổ cái, hold & trạng thái đóng băng được surface có chủ đích. |
+| **Console Quản trị/Kiểm toán** | Màn admin (hiện theo vai trò qua JWT) surface **xác minh hash-chain** (một nút → sổ nguyên vẹn?) và **quản lý đóng băng**. Admin bootstrap seed lúc khởi động (tắt ở prod). Phân quyền thật ở server (ADR-0017). |
 
 ## Benchmark (đo thật, single-client)
 
@@ -106,13 +107,15 @@ cd frontend && npm install && npm run dev  # http://localhost:5173
 
 Trong UI: đăng ký → mở tài khoản → nạp/rút/chuyển → xem **replay dựng số dư**, **sao kê**,
 **time-travel**, **đặt giữ tiền (hold)**, lệnh **định kỳ**, và trang **Kiểm toán** (sổ luôn
-cân). Rút một khoản lớn để thấy **tự đóng băng** chống gian lận. Metrics tại `/actuator/prometheus`.
+cân). Rút một khoản lớn để thấy **tự đóng băng** chống gian lận. Đăng nhập **`admin`/`admin12345`**
+(seed dev) để vào màn **Quản trị**: bấm **xác minh hash-chain** (sổ không bị giả mạo) và **mở băng**
+tài khoản. Metrics tại `/actuator/prometheus`.
 
 ## Kiểm thử
 
-78 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi), **integration**
+79 test, gồm: **unit** (aggregate, invariant không-âm/available/freeze, tính lãi), **integration**
 trên PostgreSQL thật (vòng đời ES/CQRS, rebuild, snapshot, time-travel, reversal, hold, hash-chain,
-fraud/freeze, hạn mức ngày), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
+fraud/freeze, hạn mức ngày, admin seed), **property-based** (jqwik — invariant với dãy ngẫu nhiên), **concurrency** (nhiều
 thread, không double-spend), **security** (MockMvc — 401/403/ownership/vai trò), **idempotency**,
 **outbox durability**. CI (GitHub Actions) build + test backend (Postgres service) và build frontend
 trên mỗi push.
@@ -124,15 +127,15 @@ Ledger/
 ├── PROJECT_BRIEF.md     # bối cảnh dự án (đọc trước)
 ├── docs/                # tài liệu nền + adr/ (15 ADR) + benchmarks/
 ├── backend/             # Spring Boot API (module: shared, account, audit, iam)
-├── frontend/            # React + TypeScript (Vite) — 6 màn hình
+├── frontend/            # React + TypeScript (Vite) — 7 màn hình
 └── ops/                 # docker-compose (PostgreSQL), k6 load test
 ```
 
 Module backend (package-by-feature): `shared` (event store + hash-chain, outbox, idempotency,
 snapshot, concurrency, observability, security) · `account` (domain/command/projection/query/api +
 interest, standingorder, **hold**, **fraud**) · `audit` (integrity, hash-chain verify) · `iam`
-(auth, JWT). Frontend 6 màn: Đăng nhập · Bảng điều khiển · Chi tiết tài khoản · Chuyển tiền ·
-Định kỳ · Kiểm toán.
+(auth, JWT). Frontend 7 màn: Đăng nhập · Bảng điều khiển · Chi tiết tài khoản · Chuyển tiền ·
+Định kỳ · Kiểm toán · Quản trị (ADMIN/AUDITOR).
 
 ## Quyết định kiến trúc (ADR)
 
@@ -154,6 +157,7 @@ interest, standingorder, **hold**, **fraud**) · `audit` (integrity, hash-chain 
 | [0014](./docs/adr/0014-hash-chain-tamper-evidence.md) | Hash-chain chống giả mạo event store |
 | [0015](./docs/adr/0015-fraud-detection-and-freeze.md) | Fraud detection rule-based + đóng băng |
 | [0016](./docs/adr/0016-daily-transaction-limit.md) | Hạn mức giao dịch theo ngày |
+| [0017](./docs/adr/0017-admin-console-and-bootstrap.md) | Console Quản trị/Kiểm toán + admin bootstrap |
 
 ## Tech stack
 

@@ -42,7 +42,8 @@ invariant trung tâm "sổ luôn cân" khi tiền tồn tại ở nhiều tiền
 - Granularity 2 chữ số (read model NUMERIC(20,2)); FX làm tròn về đó.
 - FX chưa subject hạn mức ngày / fraud (luồng riêng); một tỉ giá đơn (chưa spread bid/ask).
 - FX (4 posting, 2 tiền tệ) chưa hỗ trợ reverse qua endpoint reversal thường (giả định 1 cặp nợ/có).
-- **UI cho FX chưa làm** (chọn tiền tệ khi mở tài khoản + màn quy đổi) — để follow-up; backend xong & verify.
+- **UI cho FX đã surface**: chọn tiền tệ khi mở tài khoản + nút "Quy đổi" (modal đích khác tiền tệ),
+  dashboard tổng theo từng tiền tệ. Verify end-to-end qua preview (mở USD, nạp VND, quy đổi, integrity cân).
 
 ## Phương án đã cân nhắc
 - **Ghi sổ kép trực tiếp xuyên tiền tệ** (nợ A, có B khác số tiền) — loại: phá invariant "hai vế cùng

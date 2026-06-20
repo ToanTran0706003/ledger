@@ -172,6 +172,10 @@ https://github.com/ToanTran0706003/ledger · 47 backend test · 12 ADR · README
   ở tỉ giá **cấu hình** (client không tự đặt) → **integrity theo TỪNG tiền tệ vẫn cân**. /code-review
   phát hiện bug thật: `toAmount` số lẻ làm tròn lệch read model NUMERIC(20,2) → báo lệch sổ giả →
   **sửa: làm tròn toAmount về 2 chữ số**; + validate tiền tệ lúc mở. 85 test cũ xanh không đổi. (ADR-0019)
+  **Đã surface UI** (frontend-design): chọn tiền tệ khi mở tài khoản, nút "Quy đổi" (modal đích khác
+  tiền tệ), dashboard tổng theo TỪNG tiền tệ. Verify end-to-end qua preview. *Bài học:* đổi
+  `application.yml` mà quên chạy lại full suite (test kế thừa config) → CI bắt; đã cố định
+  `currencies=VND` trong test profile. (Cũng sửa bug @Value không bind YAML-list → dùng chuỗi phẩy.)
 - Backend test: **89 test, 0 fail** (jqwik, concurrency, security MockMvc, metrics, interest,
   standing order, hold/reservation, hash-chain, fraud detection + freeze, hạn mức ngày, admin seed,
   rate limiting, phân quyền admin/audit theo vai trò, đa tiền tệ + FX per-currency integrity).

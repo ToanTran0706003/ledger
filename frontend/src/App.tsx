@@ -7,6 +7,7 @@ import { Transfer } from "./views/Transfer";
 import { StandingOrders } from "./views/StandingOrders";
 import { Audit } from "./views/Audit";
 import { Admin } from "./views/Admin";
+import { Security } from "./views/Security";
 import type { Notify } from "./ui";
 
 type View =
@@ -15,6 +16,7 @@ type View =
   | { name: "transfer" }
   | { name: "standing" }
   | { name: "audit" }
+  | { name: "security" }
   | { name: "admin" };
 type ToastState = { msg: string; kind: "ok" | "err" } | null;
 
@@ -72,6 +74,9 @@ function AppShell({ notify }: { notify: Notify }) {
           <button className={section === "audit" ? "active" : ""} onClick={() => setView({ name: "audit" })}>
             Kiểm toán
           </button>
+          <button className={section === "security" ? "active" : ""} onClick={() => setView({ name: "security" })}>
+            Bảo mật
+          </button>
           {canAdmin && (
             <button className={section === "admin" ? "active" : ""} onClick={() => setView({ name: "admin" })}>
               Quản trị
@@ -96,6 +101,7 @@ function AppShell({ notify }: { notify: Notify }) {
           {view.name === "transfer" && <Transfer notify={notify} onDone={() => setView({ name: "dashboard" })} />}
           {view.name === "standing" && <StandingOrders notify={notify} />}
           {view.name === "audit" && <Audit notify={notify} />}
+          {view.name === "security" && <Security notify={notify} />}
           {view.name === "admin" && <Admin notify={notify} roles={roles} />}
         </div>
       </main>

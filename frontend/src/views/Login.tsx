@@ -9,6 +9,8 @@ export function Login({ notify }: { notify: Notify }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -17,11 +19,16 @@ export function Login({ notify }: { notify: Notify }) {
     setErr(null);
     setBusy(true);
     try {
-      if (mode === "login") await login(username, password);
+      if (mode === "login") await login(username, password, needsTotp ? totpCode : undefined);
       else await register(username, password);
       notify(mode === "login" ? "Đã đăng nhập." : "Đã tạo tài khoản.");
     } catch (ex) {
-      setErr(ex instanceof ApiError ? ex.message : "Không kết nối được máy chủ.");
+      if (ex instanceof ApiError && ex.twoFactorRequired) {
+        setNeedsTotp(true);
+        setErr("Nhập mã 6 số từ ứng dụng xác thực.");
+      } else {
+        setErr(ex instanceof ApiError ? ex.message : "Không kết nối được máy chủ.");
+      }
     } finally {
       setBusy(false);
     }
@@ -60,6 +67,21 @@ export function Login({ notify }: { notify: Notify }) {
                 </div>
               )}
             </div>
+            {needsTotp && mode === "login" && (
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label htmlFor="totp">Mã xác thực 2 lớp</label>
+                <input
+                  id="totp"
+                  className="num"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="000000"
+                  autoFocus
+                />
+              </div>
+            )}
             <button className="primary" type="submit" disabled={busy}>
               {busy ? "Đang xử lý" : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
             </button>
@@ -72,6 +94,8 @@ export function Login({ notify }: { notify: Notify }) {
               onClick={() => {
                 setMode(mode === "login" ? "register" : "login");
                 setErr(null);
+                setNeedsTotp(false);
+                setTotpCode("");
               }}
             >
               {mode === "login" ? "Tạo mới" : "Đăng nhập"}

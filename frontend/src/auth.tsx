@@ -7,7 +7,7 @@ type AuthState = {
   username: string | null;
   token: string | null;
   roles: string[];
-  login: (u: string, p: string) => Promise<void>;
+  login: (u: string, p: string, totpCode?: string) => Promise<void>;
   register: (u: string, p: string) => Promise<void>;
   logout: () => void;
 };
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username,
     token,
     roles: rolesFromToken(token),
-    login: async (u, p) => apply(await api.login(u, p), u),
+    login: async (u, p, totpCode) => apply(await api.login(u, p, totpCode), u),
     register: async (u, p) => apply(await api.register(u, p), u),
     logout: () => {
       // Thu hồi refresh token phía máy chủ (best-effort) rồi xoá phiên cục bộ.

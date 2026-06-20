@@ -59,11 +59,15 @@ export type PendingApproval = {
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  twoFactorRequired: boolean;
+  constructor(status: number, message: string, twoFactorRequired = false) {
     super(message);
     this.status = status;
+    this.twoFactorRequired = twoFactorRequired;
   }
 }
+
+export type TwoFactorSetup = { secret: string; otpauthUri: string };
 
 let tokenGetter: () => string | null = () => null;
 export function setTokenGetter(fn: () => string | null) {
@@ -88,15 +92,21 @@ async function request<T>(path: string, opts: Opts = {}): Promise<T> {
   });
 
   if (!res.ok) {
-    let detail = `Có lỗi xảy ra (mã ${res.status}).`;
+    let detail: string | null = null;
+    let twoFactorRequired = false;
     try {
       const j = await res.json();
-      detail = j.detail ?? j.message ?? detail;
+      detail = j.detail ?? j.message ?? null;
+      twoFactorRequired = j.twoFactorRequired === true;
     } catch {
       /* body không phải JSON */
     }
-    if (res.status === 401) detail = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.";
-    throw new ApiError(res.status, detail);
+    // Giữ thông điệp domain của backend (đăng nhập sai, mã 2FA…); chỉ fallback khi không có body
+    // (vd token hết hạn do Spring Security trả 401 rỗng).
+    if (detail == null) {
+      detail = res.status === 401 ? "Phiên đăng nhập không hợp lệ hoặc đã hết hạn." : `Có lỗi xảy ra (mã ${res.status}).`;
+    }
+    throw new ApiError(res.status, detail, twoFactorRequired);
   }
 
   if (res.status === 204) return undefined as T;
@@ -107,9 +117,13 @@ async function request<T>(path: string, opts: Opts = {}): Promise<T> {
 export const api = {
   register: (username: string, password: string) =>
     request<Tokens>("/auth/register", { method: "POST", body: { username, password }, auth: false }),
-  login: (username: string, password: string) =>
-    request<Tokens>("/auth/login", { method: "POST", body: { username, password }, auth: false }),
+  login: (username: string, password: string, totpCode?: string) =>
+    request<Tokens>("/auth/login", { method: "POST", body: { username, password, totpCode }, auth: false }),
   logout: () => request<void>("/auth/logout", { method: "POST" }),
+  twoFactorStatus: () => request<{ enabled: boolean }>("/auth/2fa/status"),
+  setup2fa: () => request<TwoFactorSetup>("/auth/2fa/setup", { method: "POST" }),
+  enable2fa: (code: string) => request<void>("/auth/2fa/enable", { method: "POST", body: { code } }),
+  disable2fa: (code: string) => request<void>("/auth/2fa/disable", { method: "POST", body: { code } }),
   myAccounts: () => request<Account[]>("/accounts"),
   openAccount: (type: string, currency: string) =>
     request<{ accountId: string }>("/accounts", { method: "POST", body: { type, currency } }),

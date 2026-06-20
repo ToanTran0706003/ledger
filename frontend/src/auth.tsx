@@ -6,10 +6,27 @@ import type { Tokens } from "./api";
 type AuthState = {
   username: string | null;
   token: string | null;
+  roles: string[];
   login: (u: string, p: string) => Promise<void>;
   register: (u: string, p: string) => Promise<void>;
   logout: () => void;
 };
+
+/** Đọc các vai trò từ claim "roles" của JWT (base64url). Lỗi giải mã -> không vai trò. */
+function rolesFromToken(token: string | null): string[] {
+  if (!token) return [];
+  try {
+    const part = token.split(".")[1];
+    if (!part) return [];
+    // base64url -> base64 + bù padding; giải mã UTF-8 an toàn (username có thể có dấu).
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(part.length / 4) * 4, "=");
+    const json = new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+    const claims = JSON.parse(json);
+    return Array.isArray(claims.roles) ? claims.roles : [];
+  } catch {
+    return [];
+  }
+}
 
 const AuthContext = createContext<AuthState | null>(null);
 
@@ -36,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthState = {
     username,
     token,
+    roles: rolesFromToken(token),
     login: async (u, p) => apply(await api.login(u, p), u),
     register: async (u, p) => apply(await api.register(u, p), u),
     logout: () => {

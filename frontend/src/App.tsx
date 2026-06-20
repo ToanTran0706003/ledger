@@ -6,6 +6,7 @@ import { AccountView } from "./views/AccountView";
 import { Transfer } from "./views/Transfer";
 import { StandingOrders } from "./views/StandingOrders";
 import { Audit } from "./views/Audit";
+import { Admin } from "./views/Admin";
 import type { Notify } from "./ui";
 
 type View =
@@ -13,7 +14,8 @@ type View =
   | { name: "account"; id: string }
   | { name: "transfer" }
   | { name: "standing" }
-  | { name: "audit" };
+  | { name: "audit" }
+  | { name: "admin" };
 type ToastState = { msg: string; kind: "ok" | "err" } | null;
 
 export default function App() {
@@ -45,9 +47,10 @@ function Root() {
 }
 
 function AppShell({ notify }: { notify: Notify }) {
-  const { username, logout } = useAuth();
+  const { username, logout, roles } = useAuth();
   const [view, setView] = useState<View>({ name: "dashboard" });
 
+  const canAdmin = roles.includes("ADMIN") || roles.includes("AUDITOR");
   const section = view.name === "account" ? "dashboard" : view.name;
 
   return (
@@ -69,6 +72,11 @@ function AppShell({ notify }: { notify: Notify }) {
           <button className={section === "audit" ? "active" : ""} onClick={() => setView({ name: "audit" })}>
             Kiểm toán
           </button>
+          {canAdmin && (
+            <button className={section === "admin" ? "active" : ""} onClick={() => setView({ name: "admin" })}>
+              Quản trị
+            </button>
+          )}
         </nav>
         <div className="row">
           <span className="muted hide-sm">{username}</span>
@@ -87,6 +95,7 @@ function AppShell({ notify }: { notify: Notify }) {
         {view.name === "transfer" && <Transfer notify={notify} onDone={() => setView({ name: "dashboard" })} />}
         {view.name === "standing" && <StandingOrders notify={notify} />}
         {view.name === "audit" && <Audit notify={notify} />}
+        {view.name === "admin" && <Admin notify={notify} roles={roles} />}
       </main>
     </div>
   );

@@ -42,6 +42,8 @@ export type HistoryRow = {
 };
 export type BalanceAt = { accountId: string; asOf: string; balance: number };
 export type IntegrityReport = { totalBalance: number; expectedTotal: number; balanced: boolean };
+export type HashChainReport = { intact: boolean; eventsChecked: number; firstBrokenSeq: number | null };
+export type FrozenAccount = { accountId: string; owner: string; freezeReason: string | null };
 
 export class ApiError extends Error {
   status: number;
@@ -102,6 +104,9 @@ export const api = {
     request<BalanceAt>(`/accounts/${id}/balance?asOf=${encodeURIComponent(asOf)}`),
   history: (id: string) => request<HistoryRow[]>(`/accounts/${id}/history`),
   integrity: () => request<IntegrityReport>("/audit/integrity"),
+  hashChain: () => request<HashChainReport>("/audit/hash-chain"),
+  frozenAccounts: () => request<FrozenAccount[]>("/admin/fraud/frozen"),
+  unfreezeAccount: (id: string) => request<void>(`/admin/accounts/${id}/unfreeze`, { method: "POST" }),
   standingOrders: () => request<StandingOrderView[]>("/standing-orders"),
   createStandingOrder: (fromAccountId: string, toAccountId: string, amount: number, intervalSeconds: number) =>
     request<{ id: string }>("/standing-orders", {
